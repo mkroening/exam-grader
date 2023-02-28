@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from logging import error
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Dict
 
 from gi.repository import Gtk
 
@@ -20,6 +20,43 @@ class ExamTask:
     name: str
     max_points: int
     id: int
+
+
+class PointTable:
+    def __init__(
+        self, passing: float, step: float, max_pts: float, min_step: float = 0.5
+    ):
+        self.labels = [
+            "5.0",
+            "4.0",
+            "3.7",
+            "3.3",
+            "3.0",
+            "2.7",
+            "2.3",
+            "2.0",
+            "1.7",
+            "1.3",
+            "1.0",
+        ]
+        self.points_min = [0.0]
+        pm = passing
+        for i in range(len(self.labels) - 1):
+            self.points_min.append(pm)
+            pm += step
+
+        pm = passing - min_step
+        self.points_max = [pm]
+        for i in range(len(self.labels) - 2):
+            pm += step
+            self.points_max.append(pm)
+        self.points_max.append(max_pts)
+
+    def grade(self, points: float) -> str:
+        for i, l in enumerate(self.labels):
+            if points < self.points_min[i]:
+                return self.labels[i - 1]
+        return self.labels[-1]
 
 
 class MainWindow:
@@ -40,6 +77,7 @@ class MainWindow:
             "export_clicked": self.export,
             "on_main_stack_visible_child_changed": self.on_main_stack_visible_child_changed,
             "on_examdate_selected": self.on_examdate_clicked,
+            "on_gradetable_value_changed": self.update_grade_table,
         }
         self.builder.connect_signals(handlers)
 
@@ -57,14 +95,57 @@ class MainWindow:
         self.add_task("Exampletask", 10)
 
         self.grading_rows = [
-            GradingRow("12345", "Peter", "Pan", self.tasks),
-            GradingRow("12345", "Peter", "Pan", self.tasks),
+            GradingRow("12345", "Peter", "Pan", self.tasks, self.grade_calculation, self.update_histogram),
+            GradingRow("12345", "Peter", "Pan", self.tasks, self.grade_calculation, self.update_histogram),
         ]
         for row in self.grading_rows:
             self.grading_table.add(row)
         self.grading_table.show_all()
 
         self.set_visible_buttons(GuiPages.EXAM_SETUP)
+
+        self.point_table = PointTable(10, 5, 100)
+
+        self.update_grade_table(None)
+
+    def update_grade_table(self, widget):
+        passing_spin = self.builder.get_object("passing_spin_but")
+        passing_pts = passing_spin.get_value()
+        stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
+        stepsize = stepsize_spin_but.get_value()
+        self.point_table = PointTable(passing_pts, stepsize, 100, 0.5)
+
+        for i, grade in enumerate(self.point_table.labels):
+            label_from = self.builder.get_object(f"{grade}_from")
+            label_from.set_text(f"{self.point_table.points_min[i]}")
+            label_to = self.builder.get_object(f"{grade}_to")
+            label_to.set_text(f"{self.point_table.points_max[i]}")
+
+        for row in self.grading_rows:
+            row.update_entries(self.tasks)
+        self.grading_table.show_all()
+
+    def update_histogram(self, widget):
+        self.histogram = self.generate_histogram()
+        for grade in self.point_table.labels:
+            label_count = self.builder.get_object(f"{grade}_count")
+            label_count.set_text(f"{self.histogram[grade]}")
+        self.builder.get_object("point_table").show_all()
+
+
+    def generate_histogram(self) -> Dict[str, int]:
+        hist = {}
+        for label in self.point_table.labels:
+            hist[label] = 0
+        for row in self.grading_rows:
+            try:
+                hist[row.grade_final] += 1
+            except KeyError:
+                pass
+        return hist
+
+    def grade_calculation(self, points: float) -> str:
+        return self.point_table.grade(points)
 
     def on_main_stack_visible_child_changed(self, stack_widget, variable):
         return
@@ -127,11 +208,12 @@ class MainWindow:
         for child in self.task_label_box.get_children():
             self.task_label_box.remove(child)
         for i, t in enumerate(self.tasks):
-            label = Gtk.Label(f"T{i}:\n{t.name[0:10]}")
+            label = Gtk.Label(f"T {i}:\n{t.name[0:10]}")
             label.set_size_request(90, -1)
             label.set_justify(Gtk.Justification.CENTER)
             self.task_label_box.add(label)
         self.task_label_box.show_all()
+
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Add_Task_Row.glade").resolve()))
 class AddTaskRow(Gtk.Box):
@@ -194,7 +276,13 @@ class GradingRow(Gtk.Box):
     additional_points_entry = Gtk.Template.Child("additional_points_entry")
 
     def __init__(
-        self, student_id: str, first_name: str, surname: str, tasks: [ExamTask]
+        self,
+        student_id: str,
+        first_name: str,
+        surname: str,
+        tasks: [ExamTask],
+        grade_calculation: Callable[[MainWindow, float], str],
+        update_callback: Callable[[MainWindow], None],
     ):
         super(Gtk.Box, self).__init__()
 
@@ -202,10 +290,17 @@ class GradingRow(Gtk.Box):
         self.student_id_label.set_text(student_id)
         self.first_name_label.set_text(first_name)
         self.surname_label.set_text(surname)
+        self.grade_calculation = grade_calculation
+        self.update_callback = update_callback
 
         self.additional_points_entry.connect("changed", self.on_update)
 
         self.point_entries = {}
+
+        self.points = 0.0
+        self.points_final = 0.0
+        self.grade = ""
+        self.grade_final = ""
 
         for i in range(len(tasks)):
             taskpoint_entry = self.new_entry()
@@ -241,18 +336,30 @@ class GradingRow(Gtk.Box):
         for e in self.point_entries.items():
             self.task_point_area.add(e[1][1])
         self.show_all()
+        self.on_update(None)
 
     def on_update(self, widget):
-        sum = 0
+        sum = 0.0
         for entry in self.point_entries.items():
+
             def validate_maxpoints(points):
                 return points <= entry[1][0].max_points
 
-            p = get_content(entry[1][1], int, validate_maxpoints)
+            p = get_content(entry[1][1], float, validate_maxpoints)
             if p is not None:
                 sum += p
-        self.total_points_label.set_text(str(sum))
+        self.points = sum
+        self.total_points_label.set_text(str(self.points))
+        self.grade = self.grade_calculation(sum)
+        self.grade_label.set_text(str(self.grade))
         ap = get_content(self.additional_points_entry, int)
         if ap is not None:
             sum += ap
-        self.total_points_final_label.set_text(str(sum))
+        self.points_final = sum
+        self.total_points_final_label.set_text(str(self.points_final))
+        self.grade_final = self.grade_calculation(sum)
+        self.grade_final_label.set_text(str(self.grade_final))
+        self.update_callback(self)
+
+    def get_task_points(tasknr: int) -> float:
+        return get_content(self.point_entries[i][1], float, validate_maxpoints)
