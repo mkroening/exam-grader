@@ -4,8 +4,11 @@ from enum import Enum
 from logging import error
 from pathlib import Path
 from typing import Callable, List, Dict
-
 from gi.repository import Gtk
+from matplotlib.figure import Figure
+from numpy import pi, linspace
+import matplotlib.cm as cm
+from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
 from .gui_helpers import get_content, show_about_dialog
 
@@ -89,14 +92,42 @@ class MainWindow:
         self.open_button = self.builder.get_object("open_button")
         self.grading_table = self.builder.get_object("grading_tabl")
         self.task_label_box = self.builder.get_object("task_label_box")
+        self.histogram_area = self.builder.get_object("histogram_area")
+
+        self.point_table = PointTable(10, 5, 100)
+
+        mplfigure = Figure(figsize=(10, 2), dpi=100)
+        self.histogramax = mplfigure.add_subplot(111)
+        self.histogrambars = self.histogramax.bar(
+            self.point_table.labels, [3.0] * len(self.point_table.labels), width=0.5,
+        )
+        self.histogramax.plot()
+        self.canvas = FigureCanvas(mplfigure)
+        self.canvas.set_size_request(450, 200)
+        self.histogram_area.add_with_viewport(self.canvas)
+        self.histogram_area.show_all()
 
         self.grading_rows = []
         self.tasks: List[ExamTask] = []
         self.add_task("Exampletask", 10)
 
         self.grading_rows = [
-            GradingRow("12345", "Peter", "Pan", self.tasks, self.grade_calculation, self.update_histogram),
-            GradingRow("12345", "Peter", "Pan", self.tasks, self.grade_calculation, self.update_histogram),
+            GradingRow(
+                "12345",
+                "Peter",
+                "Pan",
+                self.tasks,
+                self.grade_calculation,
+                self.update_histogram,
+            ),
+            GradingRow(
+                "12345",
+                "Peter",
+                "Pan",
+                self.tasks,
+                self.grade_calculation,
+                self.update_histogram,
+            ),
         ]
         for row in self.grading_rows:
             self.grading_table.add(row)
@@ -104,9 +135,15 @@ class MainWindow:
 
         self.set_visible_buttons(GuiPages.EXAM_SETUP)
 
-        self.point_table = PointTable(10, 5, 100)
-
         self.update_grade_table(None)
+
+    def draw_histogram(self):
+        for i, b in enumerate(self.histogrambars):
+            b.set_height(self.histogram[self.point_table.labels[i]])
+        self.histogramax.relim()
+        self.histogramax.autoscale_view()
+        self.canvas.draw()
+        self.canvas.flush_events()
 
     def update_grade_table(self, widget):
         passing_spin = self.builder.get_object("passing_spin_but")
@@ -131,7 +168,7 @@ class MainWindow:
             label_count = self.builder.get_object(f"{grade}_count")
             label_count.set_text(f"{self.histogram[grade]}")
         self.builder.get_object("point_table").show_all()
-
+        self.draw_histogram()
 
     def generate_histogram(self) -> Dict[str, int]:
         hist = {}

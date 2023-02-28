@@ -69,7 +69,7 @@
     <property name="can-focus">False</property>
     <property name="window-position">center</property>
     <property name="default-width">1100</property>
-    <property name="default-height">900</property>
+    <property name="default-height">700</property>
     <property name="icon">../assets/exam.svg</property>
     <signal name="destroy" handler="onDestroy" swapped="no"/>
     <child>
@@ -1222,6 +1222,25 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="histogram_area">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="halign">center</property>
+                    <property name="shadow-type">in</property>
+                    <property name="min-content-height">200</property>
+                    <property name="propagate-natural-width">True</property>
+                    <property name="propagate-natural-height">True</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">3</property>
                   </packing>
                 </child>
               </object>
