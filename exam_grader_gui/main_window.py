@@ -13,11 +13,6 @@ from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCan
 from .gui_helpers import get_content, show_about_dialog
 
 
-class GuiPages(Enum):
-    EXAM_SETUP = 1
-    GRADING = 2
-
-
 @dataclass
 class ExamTask:
     name: str
@@ -78,7 +73,6 @@ class MainWindow:
             "on_open_clicked": self.open,
             "on_about_clicked": self.on_about_clicked,
             "export_clicked": self.export,
-            "on_main_stack_visible_child_changed": self.on_main_stack_visible_child_changed,
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.update_grade_table,
         }
@@ -99,7 +93,9 @@ class MainWindow:
         mplfigure = Figure(figsize=(10, 2), dpi=100)
         self.histogramax = mplfigure.add_subplot(111)
         self.histogrambars = self.histogramax.bar(
-            self.point_table.labels, [3.0] * len(self.point_table.labels), width=0.5,
+            self.point_table.labels,
+            [3.0] * len(self.point_table.labels),
+            width=0.5,
         )
         self.histogramax.plot()
         self.canvas = FigureCanvas(mplfigure)
@@ -132,8 +128,6 @@ class MainWindow:
         for row in self.grading_rows:
             self.grading_table.add(row)
         self.grading_table.show_all()
-
-        self.set_visible_buttons(GuiPages.EXAM_SETUP)
 
         self.update_grade_table(None)
 
@@ -183,25 +177,6 @@ class MainWindow:
 
     def grade_calculation(self, points: float) -> str:
         return self.point_table.grade(points)
-
-    def on_main_stack_visible_child_changed(self, stack_widget, variable):
-        return
-        visible_page = stack_widget.get_visible_child_name()
-        if visible_page == "scan_sorter":
-            self.set_visible_buttons(GuiPages.GRADING)
-        elif visible_page == "barcode_generation":
-            self.set_visible_buttons(GuiPages.EXAM_SETUP)
-        else:
-            error(f"Invalid stack page: {visible_page}")
-            raise (RuntimeError(f"Invalid stack page: {visible_page}"))
-
-    def set_visible_buttons(self, page: GuiPages):
-        if page == GuiPages.EXAM_SETUP:
-            self.export_button.set_visible(False)
-            self.open_button.set_visible(False)
-        elif page == GuiPages.GRADING:
-            self.export_button.set_visible(True)
-            self.open_button.set_visible(True)
 
     def on_about_clicked(self, _widget):
         self.help_menu_popover.popdown()
