@@ -1,0 +1,31 @@
+[project]
+
+name="exam-grader"
+version="0.0.1"
+# authors=["Jonathan Klimt <jonathan.klimt@rwth-aachen.de>"]
+# author_email="jonathan.klimt@rwth-aachen.de"
+description="Grade your exams"
+readme = "README.md"
+requires-python = ">=3.6"
+keywords = ["one", "two"]
+license = {text = "GPL-3.0-or-later"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "PyGObject", # GTK bindings - (LGPLv2+)
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["exam_grader_gui*"]  # ["*"] by default
+
+[tool.setuptools.package-data]
+"exam_scan_tools.assets" = ["*"]
+"exam_scan_tools.glade" = ["*.glade"]
+
+[project.scripts]
+exam-grader = "exam_grader.start:start"

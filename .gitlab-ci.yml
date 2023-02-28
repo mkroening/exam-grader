@@ -1,0 +1,82 @@
+variables:
+  DOCKER_FILE: resources/Dockerfile
+  DOCKER_TAG: latest
+  DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
+  IMAGE: ${CI_REGISTRY_IMAGE}
+
+stages:
+  - prepare
+  - testing
+  - packaging
+
+prepare:docker:
+  stage: prepare
+  image:
+    name: docker
+  before_script:
+    - docker version
+    - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+    - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} --build-arg ci_project_dir=$CI_PROJECT_DIR .
+    - docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+  tags:
+    - docker
+
+formatting:
+  image: ${CI_REGISTRY_IMAGE}
+  stage: testing
+  script:
+    - black --check --diff exam_grader
+
+type-checking:
+  image: ${CI_REGISTRY_IMAGE}
+  stage: testing
+  script:
+    - mypy exam_grader
+
+test:
+  image: ${CI_REGISTRY_IMAGE}
+  stage: testing
+  script:
+    - coverage run -m pytest --junitxml=report.xml tests
+    - coverage report
+    - coverage xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: report.xml
+
+win-build:
+  only:
+    refs:
+      - master
+  stage: packaging
+  tags:
+    - win10
+  artifacts:
+    name: win-build-files
+    paths:
+      - exam_grader/
+  # This is a dirty script which modifies the windows build machine. But we don't have docker for windows and it doesn't feel it is worth the effort to improve the setup
+  before_script:
+    - $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
+    - >
+      C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed
+      mingw-w64-x86_64-gtk3
+      mingw-w64-x86_64-python3
+      mingw-w64-x86_64-python3-cx_Freeze
+      mingw-w64-x86_64-python3-gobject
+      mingw-w64-x86_64-python3-cairo
+      mingw-w64-x86_64-poppler
+      mingw64/mingw-w64-x86_64-gcc
+      mingw64/mingw-w64-x86_64-zbar
+      mingw-w64-x86_64-imagemagick
+      python3-pip
+
+  script:
+    - pip install Wand pypdf2 pyzbar pillow "python-barcode[png]" pypng
+    - python setup-win64.py build
+    - mv build/exe.mingw* exam_grader
