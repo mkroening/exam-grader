@@ -1,4 +1,5 @@
 import random
+import csv
 from dataclasses import dataclass
 from enum import Enum
 from logging import error
@@ -11,6 +12,7 @@ import matplotlib.cm as cm
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
 from .gui_helpers import get_content, show_about_dialog
+from .csv_import import CsvImportDialog
 
 
 @dataclass
@@ -75,6 +77,7 @@ class MainWindow:
             "export_clicked": self.export,
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.update_grade_table,
+            "on_csv_import_clicked": self.csv_import,
         }
         self.builder.connect_signals(handlers)
 
@@ -225,6 +228,63 @@ class MainWindow:
             label.set_justify(Gtk.Justification.CENTER)
             self.task_label_box.add(label)
         self.task_label_box.show_all()
+
+    def csv_import(self, widget):
+        dialog = CsvImportDialog(self.window)
+        resp = dialog.run()
+        print("dialog done")
+        if resp == Gtk.ResponseType.OK:
+            warn_dialog = Gtk.MessageDialog(
+                self.window,
+                Gtk.DialogFlags.MODAL
+                | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                | Gtk.DialogFlags.USE_HEADER_BAR,
+                type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.OK_CANCEL,
+                message_format="Overwrite existing data?",
+            )
+            warn_dialog.format_secondary_text("All changes so far will be lost")
+            # TODO: Doesn't work
+            # warn_dialog.get_widget_for_response(
+            #     response_id=Gtk.ResponseType.OK
+            # ).get_style_context().add_class("destructive_action")
+            response = warn_dialog.run()
+            warn_dialog.destroy()
+            if response != Gtk.ResponseType.OK:
+                dialog.destroy()
+                return
+
+            self.grading_rows.clear()
+            for child in self.grading_table.get_children()[2:]:
+                self.grading_table.remove(child)
+
+            with dialog.csv.open(newline="") as csv_f:
+                csv_f.seek(0)
+                reader = csv.DictReader(csv_f, dialect=dialog.csv_dialect)
+                stud_id_col = reader.fieldnames[dialog.stud_id_combo.get_active()]
+                first_name_col = reader.fieldnames[dialog.first_name_combo.get_active()]
+                surname_col = reader.fieldnames[dialog.surname_combo.get_active()]
+                # trials_col = reader.fieldnames[dialog.trial_nr_combo.get_active()]
+                for row in reader:
+                    stud_id = row[stud_id_col]
+                    first_name = row[first_name_col]
+                    surname = row[surname_col]
+                    # trials = row[trials_col]
+
+                    self.grading_rows.append(
+                        GradingRow(
+                            stud_id,
+                            first_name,
+                            surname,
+                            self.tasks,
+                            self.grade_calculation,
+                            self.update_histogram,
+                        )
+                    )
+            for row in self.grading_rows:
+                self.grading_table.add(row)
+
+        dialog.destroy()
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Add_Task_Row.glade").resolve()))

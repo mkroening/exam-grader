@@ -7,6 +7,11 @@
     <property name="can-focus">False</property>
     <property name="icon-name">document-new-symbolic</property>
   </object>
+  <object class="GtkImage" id="csv_import_image">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">document-import-symbolic</property>
+  </object>
   <object class="GtkPopover" id="examdate_select_popover">
     <property name="can-focus">False</property>
     <child>
@@ -21,6 +26,14 @@
     </child>
   </object>
   <object class="GtkImage" id="export-icon">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">document-save-symbolic</property>
+    <style>
+      <class name="image-button"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="export-icon1">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="icon-name">document-save-symbolic</property>
@@ -1773,6 +1786,23 @@ Points</property>
           <packing>
             <property name="pack-type">end</property>
             <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="csv_import_button">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="tooltip-text" translatable="yes">Import from CSV</property>
+            <property name="image">csv_import_image</property>
+            <property name="always-show-image">True</property>
+            <signal name="clicked" handler="on_csv_import_clicked" swapped="no"/>
+            <style>
+              <class name="image-button"/>
+            </style>
+          </object>
+          <packing>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
