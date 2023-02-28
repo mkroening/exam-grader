@@ -84,6 +84,7 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="transition-type">slide-left-right</property>
+        <signal name="notify::visible-child-name" handler="on_main_stack_visible_child_changed" swapped="no"/>
         <child>
           <!-- n-columns=2 n-rows=2 -->
           <object class="GtkGrid">

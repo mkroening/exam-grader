@@ -78,6 +78,7 @@ class MainWindow:
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.update_grade_table,
             "on_csv_import_clicked": self.csv_import,
+            "on_main_stack_visible_child_changed": self.main_visible_child_changed,
         }
         self.builder.connect_signals(handlers)
 
@@ -91,6 +92,7 @@ class MainWindow:
         self.task_label_box = self.builder.get_object("task_label_box")
         self.histogram_area = self.builder.get_object("histogram_area")
 
+        self.block_histogram_update = False
         self.point_table = PointTable(10, 5, 100)
 
         mplfigure = Figure(figsize=(10, 2), dpi=100)
@@ -107,6 +109,8 @@ class MainWindow:
         self.histogram_area.show_all()
 
         self.grading_rows = []
+        self.update_histogram(None)
+
         self.tasks: List[ExamTask] = []
         self.add_task("Exampletask", 10)
 
@@ -134,7 +138,15 @@ class MainWindow:
 
         self.update_grade_table(None)
 
+    def main_visible_child_changed(self, widget, data):
+        if self.main_stack.get_visible_child_name() == "setup_page":
+            self.draw_histogram()
+        else:
+            self.block_histogram_update = True
+
     def draw_histogram(self):
+        if self.block_histogram_update:
+            return
         for i, b in enumerate(self.histogrambars):
             b.set_height(self.histogram[self.point_table.labels[i]])
         self.histogramax.relim()
@@ -155,9 +167,11 @@ class MainWindow:
             label_to = self.builder.get_object(f"{grade}_to")
             label_to.set_text(f"{self.point_table.points_max[i]}")
 
+        self.block_histogram_update = True
         for row in self.grading_rows:
             row.update_entries(self.tasks)
-        self.grading_table.show_all()
+        self.block_histogram_update = False
+        self.draw_histogram()
 
     def update_histogram(self, widget):
         self.histogram = self.generate_histogram()
@@ -202,8 +216,11 @@ class MainWindow:
         self.task_list.add(AddTaskRow(self.add_task))
         self.task_list.show_all()
 
+        self.block_histogram_update = True
         for row in self.grading_rows:
             row.update_entries(self.tasks)
+        self.block_histogram_update = False
+        self.draw_histogram()
         self.grading_table.show_all()
 
         self.rebuild_gradingtable_header()
@@ -374,10 +391,11 @@ class GradingRow(Gtk.Box):
         self.grade = ""
         self.grade_final = ""
 
-        for i in range(len(tasks)):
+        for i, t in enumerate(tasks):
             taskpoint_entry = self.new_entry()
-            self.point_entries[i] = (tasks[i], taskpoint_entry)
+            self.point_entries[i] = (t, taskpoint_entry)
             self.task_point_area.add(taskpoint_entry)
+        self.task_point_area.show_all()
 
     def new_entry(self) -> Gtk.Entry:
         taskpoint_entry = Gtk.Entry()
