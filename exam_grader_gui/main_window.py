@@ -5,7 +5,7 @@ from typing import Callable, List
 
 from gi.repository import Gtk
 
-from .gui_helpers import show_about_dialog
+from .gui_helpers import get_content, show_about_dialog
 
 
 class GuiPages(Enum):
@@ -103,15 +103,16 @@ class AddTaskRow(Gtk.Box):
         super(Gtk.Box, self).__init__()
 
         self.add_button.connect("clicked", self.add_clicked)
+        self.points_entry.connect("changed", self.on_update)
         self.cb = cb
 
+    def on_update(self, widget):
+        self.add_button.set_sensitive(get_content(widget, int) is not None)
+
     def add_clicked(self, widget):
-        try:
-            points = int(self.points_entry.get_text())
+        points = get_content(self.points_entry, int)
+        if points is not None:
             self.cb(self.taskname_entry.get_text(), points)
-        except ValueError:
-            # TODO: mark points red
-            pass
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Task_Row.glade").resolve()))
