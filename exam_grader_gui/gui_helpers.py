@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import Optional
+from typing import Optional, Callable, Any
 from collections import deque
 from datetime import datetime
 from pathlib import Path
@@ -16,7 +16,7 @@ provider.load_from_data(
 )
 
 
-def get_content(entry, target_type):
+def get_content(entry, target_type, testfn: Optional[Callable[[Any], bool]] = None):
     """
     Helper fn that queries an gtk entry and colors the entry box upon invalid content
     Returns the content cast into `desired_type`
@@ -32,6 +32,9 @@ def get_content(entry, target_type):
         return None
     try:
         ret = target_type(text)
+        if testfn is not None:
+            if not testfn(ret):
+                raise ValueError
         entry.get_style_context().remove_class("red")
         return ret
     except ValueError:

@@ -13,12 +13,26 @@
     <property name="halign">start</property>
     <property name="spacing">10</property>
     <child>
-      <object class="GtkLabel" id="taskname_label">
-        <property name="width-request">170</property>
+      <object class="GtkScrolledWindow">
         <property name="visible">True</property>
-        <property name="can-focus">False</property>
-        <property name="xpad">10</property>
-        <property name="xalign">0</property>
+        <property name="can-focus">True</property>
+        <property name="halign">center</property>
+        <property name="min-content-width">170</property>
+        <property name="max-content-width">170</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkLabel" id="taskname_label">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="xpad">10</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>

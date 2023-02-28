@@ -1,3 +1,4 @@
+import random
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -10,3 +11,4 @@ from .main_window import MainWindow  # noqa: E402,F401
 
 logger = getLogger()
 logger.setLevel(DEBUG)
+random.seed()
