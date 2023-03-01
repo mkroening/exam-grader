@@ -231,6 +231,10 @@ class MainWindow:
     def on_examdate_clicked(self, widget):
         # TODO:
         self.modified = True
+        date = widget.get_date()
+        self.examdate = f"{date.year}-{date.month}-{date.day}"
+        self.builder.get_object("examdate_button_label").set_text(self.examdate)
+        self.builder.get_object("examdate_button").get_popover().popdown()
         print("examdate selected")
 
     def export(self, _widget):
@@ -398,7 +402,7 @@ class MainWindow:
                     return
 
             save_content = {
-                "General": {"Name": examname, "Date": "12.3.45"},
+                "General": {"Name": examname, "Date": self.examdate},
                 "PointTable": self.point_table.as_dict(),
             }
             task_settings = []
@@ -457,7 +461,9 @@ class MainWindow:
                 exam = json.loads(f.read())
             try:
                 self.examname_entry.set_text(exam["General"]["Name"])
-                # TODO: Date
+                self.examdate = exam["General"]["Date"]
+                self.builder.get_object("examdate_button_label").set_text(self.examdate)
+
                 for t in exam["Tasks"]:
                     self.add_task(t["Name"], t["Max_Points"], t["ID"])
 

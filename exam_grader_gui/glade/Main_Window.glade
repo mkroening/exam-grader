@@ -165,6 +165,9 @@
                         <property name="label" translatable="yes">&lt;Select&gt;</property>
                       </object>
                     </child>
+                    <style>
+                      <class name="flat"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="left-attach">1</property>
