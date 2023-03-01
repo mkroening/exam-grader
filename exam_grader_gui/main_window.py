@@ -114,7 +114,7 @@ class MainWindow:
             "export_clicked": self.export,
             "on_examname_changed": self.on_examname_changed,
             "on_examdate_selected": self.on_examdate_clicked,
-            "on_gradetable_value_changed": self.update_grade_table,
+            "on_gradetable_value_changed": self.on_gradetable_changed,
             "on_csv_import_clicked": self.csv_import,
             "on_main_stack_visible_child_changed": self.main_visible_child_changed,
             "on_save_clicked": self.save,
@@ -375,6 +375,9 @@ class MainWindow:
             self.builder.get_object("points_median_label").set_text("0")
             self.builder.get_object("best_grade_label").set_text("0")
 
+    def on_gradetable_changed(self, widget):
+        GLib.idle_add(self.update_grade_table, None)
+
     def update_grade_table(self, widget, was_modified: bool = True):
         if was_modified:
             self.modified = True
@@ -406,6 +409,7 @@ class MainWindow:
             row.update_entries(self.tasks)
         self.block_histogram_update = tmp
         self.update_histogram(None)
+        return False
 
     def update_histogram(self, widget, was_modified: bool = True):
         if was_modified:
