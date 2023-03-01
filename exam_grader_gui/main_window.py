@@ -691,7 +691,10 @@ class MainWindow:
                 self.block_histogram_update = True
                 self.examname_entry.set_text(exam["General"]["Name"])
                 self.examdate = exam["General"]["Date"]
-                self.builder.get_object("examdate_button_label").set_text(self.examdate)
+                if self.examdate == "":
+                    self.builder.get_object("examdate_button_label").set_text("<Select>")
+                else:
+                    self.builder.get_object("examdate_button_label").set_text(self.examdate)
 
                 for t in exam["Tasks"]:
                     self.add_task(t["Name"], t["Max_Points"], t["ID"], suppress_generations=True)
@@ -763,7 +766,8 @@ class MainWindow:
                 return False
 
         self.examname_entry.set_text("")
-        # TODO Date
+        self.examdate = ""
+        self.builder.get_object("examdate_button_label").set_text("<Select>")
         self.clear_tasks()
         self.clear_grading_rows()
 
