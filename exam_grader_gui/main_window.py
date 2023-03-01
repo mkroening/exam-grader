@@ -1,10 +1,11 @@
 import random
+import json
 import csv
 from dataclasses import dataclass
 from enum import Enum
 from logging import error
 from pathlib import Path
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Any, Optional
 from gi.repository import Gtk
 from matplotlib.figure import Figure
 from numpy import pi, linspace
@@ -21,11 +22,19 @@ class ExamTask:
     max_points: int
     id: int
 
+    def as_dict(self) -> Dict[str, Any]:
+        return {"Name": self.name, "Max_Points": self.max_points, "ID": self.id}
+
 
 class PointTable:
     def __init__(
         self, passing: float, step: float, max_pts: float, min_step: float = 0.5
     ):
+        self.passing = passing
+        self.step = step
+        self.points_maximum = max_pts
+        self.min_step = min_step
+
         self.labels = [
             "5.0",
             "4.0",
@@ -58,6 +67,14 @@ class PointTable:
                 return self.labels[i - 1]
         return self.labels[-1]
 
+    def as_dict(self) -> Dict[str, float]:
+        return {
+            "passing": self.passing,
+            "step": self.step,
+            "max_points": self.points_maximum,
+            "min_step": self.min_step,
+        }
+
 
 class MainWindow:
     def __init__(self):
@@ -72,18 +89,20 @@ class MainWindow:
         self.window.show_all()
         handlers = {
             "onDestroy": Gtk.main_quit,
-            "on_open_clicked": self.open,
             "on_about_clicked": self.on_about_clicked,
             "export_clicked": self.export,
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.update_grade_table,
             "on_csv_import_clicked": self.csv_import,
             "on_main_stack_visible_child_changed": self.main_visible_child_changed,
+            "on_save_clicked": self.save,
+            "on_open_clicked": self.open,
+            "on_new_clicked": self.clear,
         }
         self.builder.connect_signals(handlers)
 
         self.help_menu_popover = self.builder.get_object("help_menu_popover")
-
+        self.examname_entry = self.builder.get_object("examname_entry")
         self.task_list = self.builder.get_object("task_list")
         self.task_list.add(AddTaskRow(self.add_task))
         self.export_button = self.builder.get_object("export_button")
@@ -199,17 +218,15 @@ class MainWindow:
         self.help_menu_popover.popdown()
         show_about_dialog(self.window)
 
-    def open(self, _widget):
-        pass
-
     def on_examdate_clicked(self, widget):
         print("examdate selected")
 
     def export(self, _widget):
         pass
 
-    def add_task(self, name: str, points: int):
-        id = random.randint(1, 100000000)
+    def add_task(self, name: str, points: int, id: Optional[int] = None):
+        if id is None:
+            id = random.randint(1, 100000000)
         self.tasks.append(ExamTask(name, points, id))
         self.task_list.remove(self.task_list.get_children()[-1])
         self.task_list.add(TaskRow(len(self.tasks) - 1, name, points, self.remove_task))
@@ -271,9 +288,7 @@ class MainWindow:
                 dialog.destroy()
                 return
 
-            self.grading_rows.clear()
-            for child in self.grading_table.get_children()[2:]:
-                self.grading_table.remove(child)
+            self.clear_grading_rows()
 
             with dialog.csv.open(newline="") as csv_f:
                 csv_f.seek(0)
@@ -302,6 +317,198 @@ class MainWindow:
                 self.grading_table.add(row)
 
         dialog.destroy()
+
+    def clear_grading_rows(self):
+        self.grading_rows.clear()
+        for child in self.grading_table.get_children()[2:]:
+            self.grading_table.remove(child)
+
+    def clear_tasks(self, rebuild_gradingtable: bool = False):
+        # First two items are header and seperator
+        for t in self.task_list.get_children()[2:]:
+            self.task_list.remove(t)
+        self.tasks.clear()
+        self.task_list.add(AddTaskRow(self.add_task))
+        self.task_list.show_all()
+
+        if rebuild_gradingtable:
+            for row in self.grading_rows:
+                row.update_entries(self.tasks)
+
+        self.rebuild_gradingtable_header()
+
+    def save(self, widget):
+        file_choose_dialog = Gtk.FileChooserDialog(
+            "Save File",
+            self.window,
+            Gtk.FileChooserAction.SAVE,
+            (
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN,
+                Gtk.ResponseType.OK,
+            ),
+        )
+        exam_file_filter = Gtk.FileFilter()
+        exam_file_filter.set_name("Exam Grading Files")
+        exam_file_filter.add_pattern("*.examgrades")
+        file_choose_dialog.add_filter(exam_file_filter)
+        all_files_filter = Gtk.FileFilter()
+        all_files_filter.set_name("All Files")
+        all_files_filter.add_pattern("*")
+        examname = self.examname_entry.get_text()
+        file_choose_dialog.set_current_name(f"{examname}.examgrades")
+
+        file_choose_dialog.get_widget_for_response(
+            Gtk.ResponseType.OK
+        ).get_style_context().add_class("suggested-action")
+
+        response = file_choose_dialog.run()
+        if response == Gtk.ResponseType.OK:
+            filepath = Path(file_choose_dialog.get_filename())
+            file_choose_dialog.destroy()
+
+            if filepath.exists():
+                warn_dialog = Gtk.MessageDialog(
+                    self.window,
+                    Gtk.DialogFlags.MODAL
+                    | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                    | Gtk.DialogFlags.USE_HEADER_BAR,
+                    type=Gtk.MessageType.WARNING,
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    message_format="File exists. Overwrite?",
+                )
+                response = warn_dialog.run()
+                warn_dialog.destroy()
+                if response != Gtk.ResponseType.OK:
+                    return
+
+            save_content = {
+                "General": {"Name": examname, "Date": "12.3.45"},
+                "PointTable": self.point_table.as_dict(),
+            }
+            task_settings = []
+            for t in self.tasks:
+                task_settings.append(t.as_dict())
+            save_content["Tasks"] = task_settings
+            grading_entries = []
+            for row in self.grading_rows:
+                grading_entries.append(row.as_dict())
+            save_content["Grading"] = grading_entries
+
+            with filepath.open("w") as savefile:
+                savefile.write(json.dumps(save_content, indent=4, sort_keys=True))
+
+            # dialog = Gtk.MessageDialog(
+            #     self.window,
+            #     Gtk.DialogFlags.MODAL
+            #     | Gtk.DialogFlags.DESTROY_WITH_PARENT
+            #     | Gtk.DialogFlags.USE_HEADER_BAR,
+            #     Gtk.MessageType.INFO,
+            #     Gtk.ButtonsType.OK,
+            #     "File Saved",
+            # )
+            # dialog.show_all()
+            # dialog.run()
+            # dialog.destroy()
+
+    def open(self, widget):
+        file_choose_dialog = Gtk.FileChooserDialog(
+            "Open File",
+            self.window,
+            Gtk.FileChooserAction.OPEN,
+            (
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN,
+                Gtk.ResponseType.OK,
+            ),
+        )
+        exam_file_filter = Gtk.FileFilter()
+        exam_file_filter.set_name("Exam Grading Files")
+        exam_file_filter.add_pattern("*.examgrades")
+        file_choose_dialog.add_filter(exam_file_filter)
+        all_files_filter = Gtk.FileFilter()
+        all_files_filter.set_name("All Files")
+        all_files_filter.add_pattern("*")
+
+        response = file_choose_dialog.run()
+        if response == Gtk.ResponseType.OK:
+            filepath = Path(file_choose_dialog.get_filename())
+            file_choose_dialog.destroy()
+            if not self.clear(None):
+                return
+            exam = {}
+            with filepath.open("r") as f:
+                exam = json.loads(f.read())
+            try:
+                self.examname_entry.set_text(exam["General"]["Name"])
+                # TODO: Date
+                for t in exam["Tasks"]:
+                    self.add_task(t["Name"], t["Max_Points"], t["ID"])
+
+                self.builder.get_object("passing_spin_but").set_value(
+                    exam["PointTable"]["passing"]
+                )
+                self.builder.get_object("stepsize_spin_but").set_value(
+                    exam["PointTable"]["step"]
+                )
+                self.update_grade_table(None)
+
+                self.block_histogram_update = True
+                for grading in exam["Grading"]:
+                    points = []
+                    for t in self.tasks:
+                        points.append(float(grading["Tasks"][str(t.id)]))
+                    points.append(float(grading["Tasks"]["Additional_Points"]))
+
+                    self.grading_rows.append(
+                        GradingRow(
+                            grading["StudentID"],
+                            grading["First_Name"],
+                            grading["Surname"],
+                            self.tasks,
+                            self.grade_calculation,
+                            self.update_histogram,
+                            points,
+                        ),
+                    )
+
+                for row in self.grading_rows:
+                    self.grading_table.add(row)
+                self.grading_table.show_all()
+                self.block_histogram_update = False
+                self.update_histogram(None)
+
+            except ValueError:
+                print("ERROR: Corrupt file")
+                self.clear(None)
+
+    def clear(self, widget) -> bool:
+        warn_dialog = Gtk.MessageDialog(
+            self.window,
+            Gtk.DialogFlags.MODAL
+            | Gtk.DialogFlags.DESTROY_WITH_PARENT
+            | Gtk.DialogFlags.USE_HEADER_BAR,
+            type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format="This will erase all unsaved modifications",
+        )
+        response = warn_dialog.run()
+        warn_dialog.destroy()
+        if response != Gtk.ResponseType.OK:
+            return False
+
+        self.examname_entry.set_text("")
+        # TODO Date
+        self.clear_tasks()
+        self.clear_grading_rows()
+
+        self.builder.get_object("passing_spin_but").set_value(10.0)
+        self.builder.get_object("stepsize_spin_but").set_value(1.0)
+        self.update_grade_table(None)
+
+        return True
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Add_Task_Row.glade").resolve()))
@@ -372,6 +579,7 @@ class GradingRow(Gtk.Box):
         tasks: [ExamTask],
         grade_calculation: Callable[[MainWindow, float], str],
         update_callback: Callable[[MainWindow], None],
+        points: Optional[List[float]] = None,
     ):
         super(Gtk.Box, self).__init__()
 
@@ -382,17 +590,24 @@ class GradingRow(Gtk.Box):
         self.grade_calculation = grade_calculation
         self.update_callback = update_callback
 
-        self.additional_points_entry.connect("changed", self.on_update)
-
         self.point_entries = {}
+
+        self.additional_points_entry.connect("changed", self.on_update)
+        if points is not None:
+            self.additional_points_entry.set_text(str(points[-1]))
 
         self.points = 0.0
         self.points_final = 0.0
         self.grade = ""
         self.grade_final = ""
 
+        if points is not None:
+            assert len(points) == len(tasks) + 1
+
         for i, t in enumerate(tasks):
             taskpoint_entry = self.new_entry()
+            if points is not None:
+                taskpoint_entry.set_text(str(points[i]))
             self.point_entries[i] = (t, taskpoint_entry)
             self.task_point_area.add(taskpoint_entry)
         self.task_point_area.show_all()
@@ -400,7 +615,7 @@ class GradingRow(Gtk.Box):
     def new_entry(self) -> Gtk.Entry:
         taskpoint_entry = Gtk.Entry()
         taskpoint_entry.set_size_request(90, -1)
-        taskpoint_entry.set_placeholder_text("0")
+        taskpoint_entry.set_placeholder_text("0.0")
         taskpoint_entry.set_alignment(0.5)
         taskpoint_entry.set_width_chars(3)
         taskpoint_entry.connect("changed", self.on_update)
@@ -442,7 +657,7 @@ class GradingRow(Gtk.Box):
         self.total_points_label.set_text(str(self.points))
         self.grade = self.grade_calculation(sum)
         self.grade_label.set_text(str(self.grade))
-        ap = get_content(self.additional_points_entry, int)
+        ap = get_content(self.additional_points_entry, float)
         if ap is not None:
             sum += ap
         self.points_final = sum
@@ -451,5 +666,23 @@ class GradingRow(Gtk.Box):
         self.grade_final_label.set_text(str(self.grade_final))
         self.update_callback(self)
 
-    def get_task_points(tasknr: int) -> float:
-        return get_content(self.point_entries[i][1], float, validate_maxpoints)
+    def as_dict(self) -> Dict[str, Any]:
+        d = {
+            "StudentID": self.student_id_label.get_text(),
+            "First_Name": self.first_name_label.get_text(),
+            "Surname": self.surname_label.get_text(),
+        }
+        taskpts = {}
+        for entry in self.point_entries.items():
+            try:
+                taskpts[str(entry[1][0].id)] = float(entry[1][1].get_text())
+            except ValueError:
+                taskpts[str(entry[1][0].id)] = 0.0
+        try:
+            taskpts["Additional_Points"] = float(
+                self.additional_points_entry.get_text()
+            )
+        except ValueError:
+            taskpts["Additional_Points"] = 0.0
+        d["Tasks"] = taskpts
+        return d
