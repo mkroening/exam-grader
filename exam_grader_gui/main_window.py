@@ -460,10 +460,10 @@ class MainWindow:
     def add_task(self, name: str, points: int, id: Optional[int] = None, suppress_generations: bool=False):
         self.modified = True
         if id is None:
-            id = random.randint(1, 100000000)
+            id = random.randint(1, 1000000000000)
         self.tasks.append(ExamTask(name, points, id))
         self.task_list.remove(self.task_list.get_children()[-1])
-        self.task_list.add(TaskRow(len(self.tasks) - 1, name, points, self.remove_task))
+        self.task_list.add(TaskRow(id, name, points, self.remove_task))
         self.task_list.add(AddTaskRow(self.add_task))
         self.task_list.show_all()
 
@@ -481,9 +481,15 @@ class MainWindow:
             self.generate_task_plots()
 
     def remove_task(self, id: int):
+        tasklist_pos = None
+        for i, t in enumerate(self.tasks):
+            if t.id == id:
+                tasklist_pos = i
+                self.tasks.remove(t)
+                break
+        assert tasklist_pos is not None
         # First two items are header and seperator
-        self.task_list.remove(self.task_list.get_children()[id + 2])
-        self.tasks.remove(self.tasks[id])
+        self.task_list.remove(self.task_list.get_children()[tasklist_pos + 2])
         self.task_list.show_all()
 
         self.max_points = sum(map(lambda t: t.max_points, self.tasks))
