@@ -776,20 +776,31 @@ class MainWindow:
                 self.generate_task_plots()
                 self.update_task_plots()
 
-            except ValueError:
-                print("ERROR: Corrupt file")
-                self.clear(None)
+            except (ValueError, TypeError):
+                error_dialog = Gtk.MessageDialog(
+                    self.window,
+                    Gtk.DialogFlags.MODAL
+                    | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                    | Gtk.DialogFlags.USE_HEADER_BAR,
+                    Gtk.MessageType.ERROR,
+                    Gtk.ButtonsType.OK,
+                    "Corrupt file - aborting",
+                )
+                error_dialog.show_all()
+                error_dialog.run()
+                error_dialog.destroy()
+                self.clear(None, force=True)
 
             self.modified = False
             self.processing_revealer.set_reveal_child(False)
         else:
             file_choose_dialog.destroy()
 
-    def clear(self, widget) -> bool:
+    def clear(self, widget, force: bool = False) -> bool:
         """
         returns True, if the state was cleared
         """
-        if self.modified:
+        if self.modified and not force:
             warn_dialog = Gtk.MessageDialog(
                 self.window,
                 Gtk.DialogFlags.MODAL
