@@ -44,7 +44,7 @@
       <object class="GtkScrolledWindow">
         <property name="width-request">170</property>
         <property name="visible">True</property>
-        <property name="can-focus">True</property>
+        <property name="can-focus">False</property>
         <property name="valign">center</property>
         <child>
           <object class="GtkViewport">
@@ -78,7 +78,7 @@
       <object class="GtkScrolledWindow">
         <property name="width-request">170</property>
         <property name="visible">True</property>
-        <property name="can-focus">True</property>
+        <property name="can-focus">False</property>
         <property name="valign">center</property>
         <child>
           <object class="GtkViewport">
