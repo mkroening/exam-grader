@@ -1721,6 +1721,7 @@
                                         <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points (final)"</property>
                                         <property name="halign">center</property>
                                         <property name="label" translatable="yes">Grade
 (final)</property>
@@ -1738,6 +1739,7 @@
                                         <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points"</property>
                                         <property name="halign">center</property>
                                         <property name="label" translatable="yes">Grade</property>
                                         <property name="justify">center</property>
@@ -1754,6 +1756,7 @@
                                         <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
                                         <property name="halign">center</property>
                                         <property name="label" translatable="yes">Total Points
 (final)</property>
@@ -1771,6 +1774,7 @@
                                         <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
                                         <property name="halign">center</property>
                                         <property name="label" translatable="yes">Total Points</property>
                                         <property name="justify">center</property>
