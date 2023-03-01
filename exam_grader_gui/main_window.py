@@ -91,6 +91,7 @@ class MainWindow:
             "onDestroy": Gtk.main_quit,
             "on_about_clicked": self.on_about_clicked,
             "export_clicked": self.export,
+            "on_examname_changed": self.on_examname_changed,
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.update_grade_table,
             "on_csv_import_clicked": self.csv_import,
@@ -111,6 +112,7 @@ class MainWindow:
         self.task_label_box = self.builder.get_object("task_label_box")
         self.histogram_area = self.builder.get_object("histogram_area")
 
+        self.modified = False
         self.block_histogram_update = False
         self.point_table = PointTable(10, 5, 100)
 
@@ -128,7 +130,7 @@ class MainWindow:
         self.histogram_area.show_all()
 
         self.grading_rows = []
-        self.update_histogram(None)
+        self.update_histogram(None, False)
 
         self.tasks: List[ExamTask] = []
         self.add_task("Exampletask", 10)
@@ -155,7 +157,8 @@ class MainWindow:
             self.grading_table.add(row)
         self.grading_table.show_all()
 
-        self.update_grade_table(None)
+        self.update_grade_table(None, False)
+        self.modified = False
 
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
@@ -173,7 +176,9 @@ class MainWindow:
         self.canvas.draw()
         self.canvas.flush_events()
 
-    def update_grade_table(self, widget):
+    def update_grade_table(self, widget, was_modified: bool = True):
+        if was_modified:
+            self.modified = True
         passing_spin = self.builder.get_object("passing_spin_but")
         passing_pts = passing_spin.get_value()
         stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
@@ -192,7 +197,9 @@ class MainWindow:
         self.block_histogram_update = False
         self.draw_histogram()
 
-    def update_histogram(self, widget):
+    def update_histogram(self, widget, was_modified: bool = True):
+        if was_modified:
+            self.modified = True
         self.histogram = self.generate_histogram()
         for grade in self.point_table.labels:
             label_count = self.builder.get_object(f"{grade}_count")
@@ -218,13 +225,19 @@ class MainWindow:
         self.help_menu_popover.popdown()
         show_about_dialog(self.window)
 
+    def on_examname_changed(self, widget):
+        self.modified = True
+
     def on_examdate_clicked(self, widget):
+        # TODO:
+        self.modified = True
         print("examdate selected")
 
     def export(self, _widget):
         pass
 
     def add_task(self, name: str, points: int, id: Optional[int] = None):
+        self.modified = True
         if id is None:
             id = random.randint(1, 100000000)
         self.tasks.append(ExamTask(name, points, id))
@@ -266,27 +279,27 @@ class MainWindow:
     def csv_import(self, widget):
         dialog = CsvImportDialog(self.window)
         resp = dialog.run()
-        print("dialog done")
         if resp == Gtk.ResponseType.OK:
-            warn_dialog = Gtk.MessageDialog(
-                self.window,
-                Gtk.DialogFlags.MODAL
-                | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                | Gtk.DialogFlags.USE_HEADER_BAR,
-                type=Gtk.MessageType.WARNING,
-                buttons=Gtk.ButtonsType.OK_CANCEL,
-                message_format="Overwrite existing data?",
-            )
-            warn_dialog.format_secondary_text("All changes so far will be lost")
-            # TODO: Doesn't work
-            # warn_dialog.get_widget_for_response(
-            #     response_id=Gtk.ResponseType.OK
-            # ).get_style_context().add_class("destructive_action")
-            response = warn_dialog.run()
-            warn_dialog.destroy()
-            if response != Gtk.ResponseType.OK:
-                dialog.destroy()
-                return
+            if self.modified:
+                warn_dialog = Gtk.MessageDialog(
+                    self.window,
+                    Gtk.DialogFlags.MODAL
+                    | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                    | Gtk.DialogFlags.USE_HEADER_BAR,
+                    type=Gtk.MessageType.WARNING,
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    message_format="Overwrite existing data?",
+                )
+                warn_dialog.format_secondary_text("All changes so far will be lost")
+                # TODO: Doesn't work
+                # warn_dialog.get_widget_for_response(
+                #     response_id=Gtk.ResponseType.OK
+                # ).get_style_context().add_class("destructive_action")
+                response = warn_dialog.run()
+                warn_dialog.destroy()
+                if response != Gtk.ResponseType.OK:
+                    dialog.destroy()
+                    return
 
             self.clear_grading_rows()
 
@@ -315,6 +328,7 @@ class MainWindow:
                     )
             for row in self.grading_rows:
                 self.grading_table.add(row)
+            self.modified = True
 
         dialog.destroy()
 
@@ -453,7 +467,7 @@ class MainWindow:
                 self.builder.get_object("stepsize_spin_but").set_value(
                     exam["PointTable"]["step"]
                 )
-                self.update_grade_table(None)
+                self.update_grade_table(None, False)
 
                 self.block_histogram_update = True
                 for grading in exam["Grading"]:
@@ -478,26 +492,32 @@ class MainWindow:
                     self.grading_table.add(row)
                 self.grading_table.show_all()
                 self.block_histogram_update = False
-                self.update_histogram(None)
+                self.update_histogram(None, False)
 
             except ValueError:
                 print("ERROR: Corrupt file")
                 self.clear(None)
 
+            self.modified = False
+
     def clear(self, widget) -> bool:
-        warn_dialog = Gtk.MessageDialog(
-            self.window,
-            Gtk.DialogFlags.MODAL
-            | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            | Gtk.DialogFlags.USE_HEADER_BAR,
-            type=Gtk.MessageType.WARNING,
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format="This will erase all unsaved modifications",
-        )
-        response = warn_dialog.run()
-        warn_dialog.destroy()
-        if response != Gtk.ResponseType.OK:
-            return False
+        """
+        returns True, if the state was cleared
+        """
+        if self.modified:
+            warn_dialog = Gtk.MessageDialog(
+                self.window,
+                Gtk.DialogFlags.MODAL
+                | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                | Gtk.DialogFlags.USE_HEADER_BAR,
+                type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.OK_CANCEL,
+                message_format="This will erase all unsaved modifications",
+            )
+            response = warn_dialog.run()
+            warn_dialog.destroy()
+            if response != Gtk.ResponseType.OK:
+                return False
 
         self.examname_entry.set_text("")
         # TODO Date
@@ -507,6 +527,8 @@ class MainWindow:
         self.builder.get_object("passing_spin_but").set_value(10.0)
         self.builder.get_object("stepsize_spin_but").set_value(1.0)
         self.update_grade_table(None)
+        self.update_histogram(None, False)
+        self.modified = False
 
         return True
 
