@@ -10,6 +10,7 @@
       <object class="GtkBox" id="task_points">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="valign">center</property>
         <property name="spacing">5</property>
         <child>
           <placeholder/>
@@ -21,7 +22,7 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">4</property>
+        <property name="position">11</property>
       </packing>
     </child>
     <child>
@@ -30,6 +31,7 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
+        <property name="valign">center</property>
         <property name="label" translatable="yes">Student ID</property>
       </object>
       <packing>
@@ -39,16 +41,32 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="first_name_label">
+      <object class="GtkScrolledWindow">
         <property name="width-request">170</property>
         <property name="visible">True</property>
-        <property name="can-focus">False</property>
-        <property name="halign">center</property>
-        <property name="label" translatable="yes">First Name</property>
-        <property name="xalign">0</property>
-        <style>
-          <class name="text_entry_limit"/>
-        </style>
+        <property name="can-focus">True</property>
+        <property name="valign">center</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkLabel" id="first_name_label">
+                <property name="width-request">170</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="label" translatable="yes">First Name</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="text_entry_limit"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -57,13 +75,29 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="surname_label">
+      <object class="GtkScrolledWindow">
         <property name="width-request">170</property>
         <property name="visible">True</property>
-        <property name="can-focus">False</property>
-        <property name="halign">center</property>
-        <property name="label" translatable="yes">Surname</property>
-        <property name="xalign">0</property>
+        <property name="can-focus">True</property>
+        <property name="valign">center</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkLabel" id="surname_label">
+                <property name="width-request">170</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="label" translatable="yes">Surname</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -72,44 +106,40 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="grade_final_label">
-        <property name="width-request">90</property>
+      <object class="GtkLabel" id="trials_label">
+        <property name="width-request">60</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
-        <property name="label" translatable="yes">5.0</property>
-        <property name="justify">center</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="xalign">0.5</property>
       </object>
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="pack-type">end</property>
         <property name="position">3</property>
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="grade_label">
-        <property name="width-request">90</property>
+      <object class="GtkSeparator">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="halign">center</property>
-        <property name="label" translatable="yes">5.0</property>
-        <property name="justify">center</property>
       </object>
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="pack-type">end</property>
         <property name="position">4</property>
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="total_points_final_label">
-        <property name="width-request">90</property>
+      <object class="GtkLabel" id="grade_final_label">
+        <property name="width-request">80</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
-        <property name="label" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">5.0</property>
         <property name="justify">center</property>
       </object>
       <packing>
@@ -120,12 +150,13 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="total_points_label">
-        <property name="width-request">90</property>
+      <object class="GtkLabel" id="grade_label">
+        <property name="width-request">80</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
-        <property name="label" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">5.0</property>
         <property name="justify">center</property>
       </object>
       <packing>
@@ -133,6 +164,40 @@
         <property name="fill">True</property>
         <property name="pack-type">end</property>
         <property name="position">6</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="total_points_final_label">
+        <property name="width-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="justify">center</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="pack-type">end</property>
+        <property name="position">7</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="total_points_label">
+        <property name="width-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="justify">center</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="pack-type">end</property>
+        <property name="position">8</property>
       </packing>
     </child>
     <child>
@@ -144,7 +209,7 @@
         <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="pack-type">end</property>
-        <property name="position">8</property>
+        <property name="position">9</property>
       </packing>
     </child>
     <child>
@@ -152,6 +217,7 @@
         <property name="width-request">90</property>
         <property name="visible">True</property>
         <property name="can-focus">True</property>
+        <property name="valign">center</property>
         <property name="margin-start">10</property>
         <property name="width-chars">3</property>
         <property name="xalign">0.5</property>
@@ -165,7 +231,7 @@
         <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="pack-type">end</property>
-        <property name="position">9</property>
+        <property name="position">10</property>
       </packing>
     </child>
   </template>

@@ -1642,7 +1642,7 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">10</property>
+                                        <property name="position">9</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1690,8 +1690,35 @@
                                       </packing>
                                     </child>
                                     <child>
+                                      <object class="GtkLabel" id="trials_label">
+                                        <property name="width-request">60</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">Attempt</property>
+                                        <property name="justify">center</property>
+                                        <property name="xalign">0.5</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">3</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSeparator">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">4</property>
+                                      </packing>
+                                    </child>
+                                    <child>
                                       <object class="GtkLabel" id="grade_final_label">
-                                        <property name="width-request">90</property>
+                                        <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="halign">center</property>
@@ -1703,12 +1730,12 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">3</property>
+                                        <property name="position">5</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="grade_label">
-                                        <property name="width-request">90</property>
+                                        <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="halign">center</property>
@@ -1719,12 +1746,12 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">4</property>
+                                        <property name="position">6</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="total_points_final_label">
-                                        <property name="width-request">90</property>
+                                        <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="halign">center</property>
@@ -1736,12 +1763,12 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">5</property>
+                                        <property name="position">7</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="total_points_label">
-                                        <property name="width-request">90</property>
+                                        <property name="width-request">80</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
                                         <property name="halign">center</property>
@@ -1752,7 +1779,7 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">6</property>
+                                        <property name="position">8</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1764,7 +1791,7 @@
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">7</property>
+                                        <property name="position">9</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1783,7 +1810,7 @@ Points</property>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
                                         <property name="pack-type">end</property>
-                                        <property name="position">8</property>
+                                        <property name="position">10</property>
                                       </packing>
                                     </child>
                                   </object>

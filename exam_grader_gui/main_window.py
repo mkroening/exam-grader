@@ -99,6 +99,9 @@ class MainWindow:
                 margin-right: 0;
                 margin-bottom: -1px
             }
+            .warning {
+                color: @warning_color;
+            }
             """.encode()
         )
         Gtk.StyleContext.add_provider_for_screen(
@@ -194,14 +197,16 @@ class MainWindow:
                 "12345",
                 "Peter",
                 "Pan",
+                1,
                 self.tasks,
                 self.grade_calculation,
                 self.update_histogram,
             ),
             GradingRow(
                 "12345",
-                "Peter",
+                "Hannes",
                 "Pan",
+                3,
                 self.tasks,
                 self.grade_calculation,
                 self.update_histogram,
@@ -544,23 +549,39 @@ class MainWindow:
                 stud_id_col = reader.fieldnames[dialog.stud_id_combo.get_active()]
                 first_name_col = reader.fieldnames[dialog.first_name_combo.get_active()]
                 surname_col = reader.fieldnames[dialog.surname_combo.get_active()]
-                # trials_col = reader.fieldnames[dialog.trial_nr_combo.get_active()]
-                for row in reader:
-                    stud_id = row[stud_id_col]
-                    first_name = row[first_name_col]
-                    surname = row[surname_col]
-                    # trials = row[trials_col]
+                trials_col = reader.fieldnames[dialog.trial_nr_combo.get_active()]
+                try:
+                    for row in reader:
+                        stud_id = row[stud_id_col]
+                        first_name = row[first_name_col]
+                        surname = row[surname_col]
+                        trials = row[trials_col]
 
-                    self.grading_rows.append(
-                        GradingRow(
-                            stud_id,
-                            first_name,
-                            surname,
-                            self.tasks,
-                            self.grade_calculation,
-                            self.update_histogram,
+                        self.grading_rows.append(
+                            GradingRow(
+                                stud_id,
+                                first_name,
+                                surname,
+                                int(trials),
+                                self.tasks,
+                                self.grade_calculation,
+                                self.update_histogram,
+                            )
                         )
+                except ValueError:
+                    error_dialog = Gtk.MessageDialog(
+                        self.window,
+                        Gtk.DialogFlags.MODAL
+                        | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                        | Gtk.DialogFlags.USE_HEADER_BAR,
+                        Gtk.MessageType.ERROR,
+                        Gtk.ButtonsType.OK,
+                        "Invalid Input",
                     )
+                    error_dialog.show_all()
+                    error_dialog.run()
+                    error_dialog.destroy()
+
             self.grading_rows = list(sorted(self.grading_rows, key=lambda r: r.stud_id))
             for row in self.grading_rows:
                 self.grading_table.add(row)
@@ -843,6 +864,7 @@ class GradingRow(Gtk.Box):
     student_id_label = Gtk.Template.Child("student_id_label")
     first_name_label = Gtk.Template.Child("first_name_label")
     surname_label = Gtk.Template.Child("surname_label")
+    trials_label = Gtk.Template.Child("trials_label")
     total_points_label = Gtk.Template.Child("total_points_label")
     total_points_final_label = Gtk.Template.Child("total_points_final_label")
     grade_label = Gtk.Template.Child("grade_label")
@@ -856,6 +878,7 @@ class GradingRow(Gtk.Box):
         student_id: str,
         first_name: str,
         surname: str,
+        trials: int,
         tasks: [ExamTask],
         grade_calculation: Callable[[MainWindow, Tuple[float, bool]], str],
         update_callback: Callable[[MainWindow], None],
@@ -869,6 +892,11 @@ class GradingRow(Gtk.Box):
         self.surname_label.set_text(surname)
         self.grade_calculation = grade_calculation
         self.update_callback = update_callback
+
+        self.trials = trials
+        self.trials_label.set_text(str(self.trials))
+        if trials > 2:
+            self.trials_label.get_style_context().add_class("warning")
 
         self.point_entries = {}
 
@@ -952,8 +980,13 @@ class GradingRow(Gtk.Box):
         self.grade_final, passed = self.grade_calculation(sum)
         if not passed:
             self.grade_final_label.get_style_context().add_class("error")
+            if self.trials > 2:
+                self.first_name_label.get_style_context().add_class("error")
+                self.surname_label.get_style_context().add_class("error")
         else:
             self.grade_final_label.get_style_context().remove_class("error")
+            self.first_name_label.get_style_context().remove_class("error")
+            self.surname_label.get_style_context().remove_class("error")
         self.grade_final_label.set_text(str(self.grade_final))
         self.update_callback(self)
 
