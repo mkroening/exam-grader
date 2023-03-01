@@ -941,6 +941,7 @@ class AddTaskRow(Gtk.Box):
         super(Gtk.Box, self).__init__()
 
         self.add_button.connect("clicked", self.add_clicked)
+        self.points_entry.connect("activate", self.add_clicked)
         self.points_entry.connect("changed", self.on_update)
         self.cb = cb
 
