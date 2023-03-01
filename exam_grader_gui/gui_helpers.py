@@ -8,22 +8,12 @@ from pathlib import Path
 
 from gi.repository import Gdk, Gtk
 
-provider = Gtk.CssProvider()
-provider.load_from_data(
-    """
-    #failable_entry.red { background: LightCoral; }
-    """.encode()
-)
-
 
 def get_content(entry, target_type, testfn: Optional[Callable[[Any], bool]] = None):
     """
     Helper fn that queries an gtk entry and colors the entry box upon invalid content
     Returns the content cast into `desired_type`
     """
-    Gtk.StyleContext.add_provider_for_screen(
-        Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-    )
 
     text = entry.get_text()
     entry.set_name("failable_entry")
@@ -48,9 +38,6 @@ def get_content_list(entry, target_type):
     Helper fn that queries an gtk entry and colors the entry box upon invalid content
     Returns the content as a list splitted at ',' and cast into `desired_type`
     """
-    Gtk.StyleContext.add_provider_for_screen(
-        Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-    )
 
     text = entry.get_text()
     entry.set_name("failable_entry")

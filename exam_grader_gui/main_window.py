@@ -6,7 +6,7 @@ from enum import Enum
 from logging import error
 from pathlib import Path
 from typing import Callable, List, Dict, Any, Optional
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 from matplotlib.figure import Figure
 from numpy import pi, linspace
 import matplotlib.cm as cm
@@ -61,11 +61,14 @@ class PointTable:
             self.points_max.append(pm)
         self.points_max.append(max_pts)
 
-    def grade(self, points: float) -> str:
+    def grade(self, points: float) -> Tuple[str, bool]:
+        '''
+        Returns the grade, and wether it passes the exam
+        '''
         for i, l in enumerate(self.labels):
             if points < self.points_min[i]:
-                return self.labels[i - 1]
-        return self.labels[-1]
+                return (self.labels[i - 1], i > 1)
+        return (self.labels[-1], True)
 
     def as_dict(self) -> Dict[str, float]:
         return {
@@ -86,7 +89,24 @@ class MainWindow:
 
         self.main_stack = self.builder.get_object("main_stack")
 
-        self.window.show_all()
+        provider = Gtk.CssProvider()
+        provider.load_from_data(
+            """
+            #failable_entry.red {
+                background: @error_color;
+            }
+            progress {
+                border-bottom-color: @success_color;
+                margin-left: 0;
+                margin-right: 0;
+                margin-bottom: -1px
+            }
+            """.encode()
+        )
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
         handlers = {
             "onDestroy": Gtk.main_quit,
             "on_about_clicked": self.on_about_clicked,
@@ -159,6 +179,8 @@ class MainWindow:
 
         self.update_grade_table(None, False)
         self.modified = False
+
+        self.window.show_all()
 
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
@@ -605,7 +627,7 @@ class GradingRow(Gtk.Box):
         first_name: str,
         surname: str,
         tasks: [ExamTask],
-        grade_calculation: Callable[[MainWindow, float], str],
+        grade_calculation: Callable[[MainWindow, Tuple[float, bool]], str],
         update_callback: Callable[[MainWindow], None],
         points: Optional[List[float]] = None,
     ):
@@ -636,6 +658,7 @@ class GradingRow(Gtk.Box):
             taskpoint_entry = self.new_entry()
             if points is not None:
                 taskpoint_entry.set_text(str(points[i]))
+                taskpoint_entry.set_progress_fraction(points[i] / tasks[i].max_points)
             self.point_entries[i] = (t, taskpoint_entry)
             self.task_point_area.add(taskpoint_entry)
         self.task_point_area.show_all()
@@ -647,6 +670,7 @@ class GradingRow(Gtk.Box):
         taskpoint_entry.set_alignment(0.5)
         taskpoint_entry.set_width_chars(3)
         taskpoint_entry.connect("changed", self.on_update)
+        taskpoint_entry.get_style_context().add_class("flat")
         return taskpoint_entry
 
     def update_entries(self, new_tasklist: List[ExamTask]):
@@ -680,17 +704,26 @@ class GradingRow(Gtk.Box):
 
             p = get_content(entry[1][1], float, validate_maxpoints)
             if p is not None:
+                entry[1][1].set_progress_fraction(p / entry[1][0].max_points)
                 sum += p
         self.points = sum
         self.total_points_label.set_text(str(self.points))
-        self.grade = self.grade_calculation(sum)
+        self.grade, passed = self.grade_calculation(sum)
+        if not passed:
+            self.grade_label.get_style_context().add_class("error")
+        else:
+            self.grade_label.get_style_context().remove_class("error")
         self.grade_label.set_text(str(self.grade))
         ap = get_content(self.additional_points_entry, float)
         if ap is not None:
             sum += ap
         self.points_final = sum
         self.total_points_final_label.set_text(str(self.points_final))
-        self.grade_final = self.grade_calculation(sum)
+        self.grade_final, passed = self.grade_calculation(sum)
+        if not passed:
+            self.grade_final_label.get_style_context().add_class("error")
+        else:
+            self.grade_final_label.get_style_context().remove_class("error")
         self.grade_final_label.set_text(str(self.grade_final))
         self.update_callback(self)
 

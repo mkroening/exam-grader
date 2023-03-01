@@ -1535,6 +1535,22 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="spacing">5</property>
+                                <child type="center">
+                                  <object class="GtkBox" id="task_label_box">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="spacing">5</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="pack-type">end</property>
+                                    <property name="position">10</property>
+                                  </packing>
+                                </child>
                                 <child>
                                   <object class="GtkLabel" id="student_id_label">
                                     <property name="width-request">100</property>
@@ -1646,6 +1662,18 @@
                                   </packing>
                                 </child>
                                 <child>
+                                  <object class="GtkSeparator">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="pack-type">end</property>
+                                    <property name="position">7</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkLabel" id="additional_points_label">
                                     <property name="width-request">90</property>
                                     <property name="visible">True</property>
@@ -1660,21 +1688,6 @@ Points</property>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
                                     <property name="pack-type">end</property>
-                                    <property name="position">7</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkBox" id="task_label_box">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">False</property>
-                                    <property name="spacing">5</property>
-                                    <child>
-                                      <placeholder/>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
                                     <property name="position">8</property>
                                   </packing>
                                 </child>
