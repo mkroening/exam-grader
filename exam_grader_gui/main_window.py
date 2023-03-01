@@ -352,6 +352,7 @@ class MainWindow:
                             self.update_histogram,
                         )
                     )
+            self.grading_rows = list(sorted(self.grading_rows, key=lambda r: r.stud_id))
             for row in self.grading_rows:
                 self.grading_table.add(row)
             self.modified = True
@@ -516,6 +517,7 @@ class MainWindow:
                         ),
                     )
 
+                self.grading_rows = list(sorted(self.grading_rows, key=lambda r: r.stud_id))
                 for row in self.grading_rows:
                     self.grading_table.add(row)
                 self.grading_table.show_all()
@@ -633,7 +635,7 @@ class GradingRow(Gtk.Box):
     ):
         super(Gtk.Box, self).__init__()
 
-        self.id = id
+        self.stud_id = student_id
         self.student_id_label.set_text(student_id)
         self.first_name_label.set_text(first_name)
         self.surname_label.set_text(surname)
