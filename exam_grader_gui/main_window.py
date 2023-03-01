@@ -1,15 +1,13 @@
 import random
 import json
 import csv
+from statistics import mean, median
 from dataclasses import dataclass
 from enum import Enum
-from logging import error
 from pathlib import Path
-from typing import Callable, List, Dict, Any, Optional
+from typing import Callable, List, Dict, Any, Optional, Tuple
 from gi.repository import Gtk, Gdk
 from matplotlib.figure import Figure
-from numpy import pi, linspace
-import matplotlib.cm as cm
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
 from .gui_helpers import get_content, show_about_dialog
@@ -62,9 +60,9 @@ class PointTable:
         self.points_max.append(max_pts)
 
     def grade(self, points: float) -> Tuple[str, bool]:
-        '''
+        """
         Returns the grade, and wether it passes the exam
-        '''
+        """
         for i, l in enumerate(self.labels):
             if points < self.points_min[i]:
                 return (self.labels[i - 1], i > 1)
@@ -265,7 +263,6 @@ class MainWindow:
             self.builder.get_object("perc_fail_label").get_style_context().remove_class(
                 "error"
             )
-            print("remove class")
             self.builder.get_object("avg_grade_label").set_text("0")
             self.builder.get_object("avg_grade_passed_label").set_text("0")
             self.builder.get_object("grade_median_label").set_text("0")
@@ -344,13 +341,11 @@ class MainWindow:
         self.modified = True
 
     def on_examdate_clicked(self, widget):
-        # TODO:
         self.modified = True
         date = widget.get_date()
         self.examdate = f"{date.year}-{date.month}-{date.day}"
         self.builder.get_object("examdate_button_label").set_text(self.examdate)
         self.builder.get_object("examdate_button").get_popover().popdown()
-        print("examdate selected")
 
     def export(self, _widget):
         pass
@@ -631,6 +626,8 @@ class MainWindow:
                 self.clear(None)
 
             self.modified = False
+        else:
+            file_choose_dialog.destroy()
 
     def clear(self, widget) -> bool:
         """
