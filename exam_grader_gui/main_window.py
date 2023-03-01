@@ -148,7 +148,7 @@ class MainWindow:
             self.point_table.labels,
             [3.0] * len(self.point_table.labels),
             width=0.5,
-            color=["tab:red"] + ["tab:blue"] * (len(self.point_table.labels)-1)
+            color=["tab:red"] + ["tab:blue"] * (len(self.point_table.labels) - 1),
         )
         self.histogramax.plot()
         self.canvas = FigureCanvas(mplfigure)
@@ -169,12 +169,10 @@ class MainWindow:
         self.point_histogram_area.add_with_viewport(self.ptscanvas)
         self.point_histogram_area.show_all()
 
-
         figure_boxplt = Figure(figsize=(10, 2), dpi=100)
         self.boxplt_ax = figure_boxplt.add_subplot(111)
         self.boxplt = self.boxplt_ax.boxplot(
-            [[1,2,3],[3,3,5],[10,1,0]],
-            labels=["T1", "T2", "T3"]
+            [[1, 2, 3], [3, 3, 5], [10, 1, 0]], labels=["T1", "T2", "T3"]
         )
         self.boxplt_ax.plot()
         self.boxcanvas = FigureCanvas(figure_boxplt)
@@ -215,6 +213,7 @@ class MainWindow:
         for row in self.grading_rows:
             self.grading_table.add(row)
         self.grading_table.show_all()
+        self.rebuild_gradingtable_header()
 
         self.update_grade_table(None, False)
         self.modified = False
@@ -253,10 +252,9 @@ class MainWindow:
         tasknames = []
         for i, t in enumerate(self.tasks):
             self.taskplots[i] = self.generate_task_plot(i)
-            self.task_diagram_box.add( self.taskplots[i]["canvas"])
+            self.task_diagram_box.add(self.taskplots[i]["canvas"])
             self.task_diagram_box.show_all()
             tasknames.append(t.name)
-
 
     def update_task_plots(self):
         rev_is_active = self.processing_revealer.get_child_revealed()
@@ -267,7 +265,7 @@ class MainWindow:
             th, tp = self.task_histogram(tn)
             taskpts.append(tp)
             for i, b in enumerate(p["bar"]):
-                b.set_height(th[float(i)/2.0])
+                b.set_height(th[float(i) / 2.0])
             p["ax"].relim()
             p["ax"].autoscale_view()
             p["canvas"].draw()
@@ -278,11 +276,8 @@ class MainWindow:
 
         self.boxplt_ax.clear()
         if len(taskpts) > 0:
-            self.boxplt = self.boxplt_ax.boxplot(
-                taskpts,
-                labels=tasknames
-            )
-            self.boxplt_ax.set_title('Exam Point Distribution')
+            self.boxplt = self.boxplt_ax.boxplot(taskpts, labels=tasknames)
+            self.boxplt_ax.set_title("Exam Point Distribution")
             self.boxplt_ax.set_ylabel("Points")
             self.boxplt_ax.plot()
         self.boxcanvas.draw()
@@ -297,7 +292,7 @@ class MainWindow:
         pts = []
         t = self.tasks[tasknr]
         for label in range(int(t.max_points * 1 / 0.5 + 1.0)):
-            hist[float(label/2.0)] = 0
+            hist[float(label / 2.0)] = 0
         for row in self.grading_rows:
             try:
                 pts.append(row.get_task_points(tasknr))
@@ -306,7 +301,6 @@ class MainWindow:
                 pass
         return hist, pts
 
-
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
             self.draw_histogram()
@@ -314,7 +308,10 @@ class MainWindow:
             GLib.timeout_add(500, self.update_task_plots)
 
     def draw_histogram(self):
-        if self.block_histogram_update or self.main_stack.get_visible_child_name() != "setup_page":
+        if (
+            self.block_histogram_update
+            or self.main_stack.get_visible_child_name() != "setup_page"
+        ):
             return
         for i, b in enumerate(self.histogrambars):
             b.set_height(self.histogram[self.point_table.labels[i]])
@@ -324,7 +321,7 @@ class MainWindow:
         self.canvas.flush_events()
 
         for i, b in enumerate(self.pthistogrambars):
-            b.set_height(self.point_histogram[float(i/2)])
+            b.set_height(self.point_histogram[float(i / 2)])
         self.ptshistogramax.relim()
         self.ptshistogramax.autoscale_view()
         self.ptscanvas.draw()
@@ -393,7 +390,8 @@ class MainWindow:
             [i * 0.5 for i in range(nr_point_bars)],
             [1.0] * nr_point_bars,
             width=0.4,
-            color=["tab:red"] * nr_fail_bars + ["tab:blue"] * (nr_point_bars - nr_fail_bars)
+            color=["tab:red"] * nr_fail_bars
+            + ["tab:blue"] * (nr_point_bars - nr_fail_bars),
         )
 
         for i, grade in enumerate(self.point_table.labels):
@@ -434,7 +432,7 @@ class MainWindow:
     def generate_point_histogram(self) -> Dict[str, int]:
         hist = {}
         for label in range(int(self.point_table.points_maximum * 1 / 0.5 + 1.0)):
-            hist[float(label/2.0)] = 0
+            hist[float(label / 2.0)] = 0
         for row in self.grading_rows:
             try:
                 hist[row.points_final] += 1
@@ -462,7 +460,13 @@ class MainWindow:
     def export(self, _widget):
         pass
 
-    def add_task(self, name: str, points: int, id: Optional[int] = None, suppress_generations: bool=False):
+    def add_task(
+        self,
+        name: str,
+        points: int,
+        id: Optional[int] = None,
+        suppress_generations: bool = False,
+    ):
         self.modified = True
         if id is None:
             id = random.randint(1, 1000000000000)
@@ -510,7 +514,7 @@ class MainWindow:
         for child in self.task_label_box.get_children():
             self.task_label_box.remove(child)
         for i, t in enumerate(self.tasks):
-            label = Gtk.Label(f"T {i}:\n{t.name[0:10]}")
+            label = Gtk.Label(f"T{i}:\n{t.name[0:12]}")
             label.set_size_request(90, -1)
             label.set_justify(Gtk.Justification.CENTER)
             self.task_label_box.add(label)
@@ -682,6 +686,8 @@ class MainWindow:
             # dialog.show_all()
             # dialog.run()
             # dialog.destroy()
+        else:
+            file_choose_dialog.destroy()
 
     def open(self, widget):
         file_choose_dialog = Gtk.FileChooserDialog(
@@ -719,12 +725,18 @@ class MainWindow:
                 self.examname_entry.set_text(exam["General"]["Name"])
                 self.examdate = exam["General"]["Date"]
                 if self.examdate == "":
-                    self.builder.get_object("examdate_button_label").set_text("<Select>")
+                    self.builder.get_object("examdate_button_label").set_text(
+                        "<Select>"
+                    )
                 else:
-                    self.builder.get_object("examdate_button_label").set_text(self.examdate)
+                    self.builder.get_object("examdate_button_label").set_text(
+                        self.examdate
+                    )
 
                 for t in exam["Tasks"]:
-                    self.add_task(t["Name"], t["Max_Points"], t["ID"], suppress_generations=True)
+                    self.add_task(
+                        t["Name"], t["Max_Points"], t["ID"], suppress_generations=True
+                    )
 
                 self.builder.get_object("passing_spin_but").set_value(
                     exam["PointTable"]["passing"]
@@ -854,8 +866,10 @@ class TaskRow(Gtk.Box):
     def remove_clicked(self, widget):
         self.cb(self.id)
 
-def round_half_points(f: float)-> float:
+
+def round_half_points(f: float) -> float:
     return int((f + 0.25) / 0.5) * 0.5
+
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
 class GradingRow(Gtk.Box):
@@ -1010,7 +1024,6 @@ class GradingRow(Gtk.Box):
             taskpts["Additional_Points"] = 0.0
         d["Tasks"] = taskpts
         return d
-
 
     def get_task_points(self, tasknr: int) -> float:
         def validate_maxpoints(points):
