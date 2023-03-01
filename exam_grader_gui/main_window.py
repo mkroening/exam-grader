@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Callable, List, Dict, Any, Optional, Tuple
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
@@ -130,6 +130,8 @@ class MainWindow:
         self.task_label_box = self.builder.get_object("task_label_box")
         self.histogram_area = self.builder.get_object("histogram_area")
         self.point_histogram_area = self.builder.get_object("point_histogram_area")
+        self.total_exam_stat = self.builder.get_object("statistics")
+        self.task_diagram_box = self.builder.get_object("task_diagram_box")
 
         self.modified = False
         self.block_histogram_update = False
@@ -163,11 +165,28 @@ class MainWindow:
         self.point_histogram_area.add_with_viewport(self.ptscanvas)
         self.point_histogram_area.show_all()
 
+
+        figure_boxplt = Figure(figsize=(10, 2), dpi=100)
+        self.boxplt_ax = figure_boxplt.add_subplot(111)
+        self.boxplt = self.boxplt_ax.boxplot(
+            [[1,2,3],[3,3,5],[10,1,0]],
+            labels=["T1", "T2", "T3"]
+        )
+        self.boxplt_ax.plot()
+        self.boxcanvas = FigureCanvas(figure_boxplt)
+        self.boxcanvas.set_size_request(600, 300)
+        self.total_exam_stat.add_with_viewport(self.boxcanvas)
+        self.total_exam_stat.show_all()
+
+        self.taskplots = {}
+
         self.grading_rows = []
         self.update_histogram(None, False)
 
         self.tasks: List[ExamTask] = []
         self.add_task("Exampletask", 10)
+        self.add_task("Exampletusk", 20)
+        self.generate_task_plots()
 
         self.grading_rows = [
             GradingRow(
@@ -196,9 +215,92 @@ class MainWindow:
 
         self.window.show_all()
 
+    def generate_task_plot(self, tasknr: int) -> Dict[str, Any]:
+        task = self.tasks[tasknr]
+        fig = Figure(figsize=(10, 2), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.set_title(f"T{tasknr} - {task.name}")
+        ax.set_xlabel("Points")
+        ax.set_ylabel("Students")
+        nr_point_bars = int(task.max_points * 1 / 0.5 + 1)
+        bar = ax.bar(
+            [i * 0.5 for i in range(nr_point_bars)],
+            [1.0] * nr_point_bars,
+            width=0.4,
+        )
+        ax.plot()
+        canvas = FigureCanvas(fig)
+        canvas.set_size_request(600, 300)
+        d = {}
+        d["bar"] = bar
+        d["ax"] = ax
+        d["canvas"] = canvas
+        return d
+
+    def generate_task_plots(self):
+        self.boxplt_ax.clear()
+        self.taskplots.clear()
+        for child in self.task_diagram_box.get_children():
+            self.task_diagram_box.remove(child)
+
+        tasknames = []
+        for i, t in enumerate(self.tasks):
+            self.taskplots[i] = self.generate_task_plot(i)
+            self.task_diagram_box.add( self.taskplots[i]["canvas"])
+            self.task_diagram_box.show_all()
+            tasknames.append(t.name)
+
+
+    def update_task_plots(self):
+        tasknames = []
+        taskpts = []
+        for tn, p in self.taskplots.items():
+            th, tp = self.task_histogram(tn)
+            taskpts.append(tp)
+            for i, b in enumerate(p["bar"]):
+                b.set_height(th[float(i)/2.0])
+            p["ax"].relim()
+            p["ax"].autoscale_view()
+            p["canvas"].draw()
+            p["canvas"].flush_events()
+
+        for i, t in enumerate(self.tasks):
+            tasknames.append(t.name)
+
+        self.boxplt_ax.clear()
+        if len(taskpts) > 0:
+            self.boxplt = self.boxplt_ax.boxplot(
+                taskpts,
+                labels=tasknames
+            )
+            self.boxplt_ax.set_title('Exam Point Distribution')
+            self.boxplt_ax.set_ylabel("Points")
+            self.boxplt_ax.plot()
+        self.boxcanvas.draw()
+        self.boxcanvas.flush_events()
+
+        return False
+
+    def task_histogram(self, tasknr: int) -> Tuple[Dict[int, int], List[float]]:
+        hist = {}
+        pts = []
+        t = self.tasks[tasknr]
+        for label in range(int(t.max_points * 1 / 0.5 + 1.0)):
+            hist[float(label/2.0)] = 0
+        for row in self.grading_rows:
+            try:
+                pts.append(row.get_task_points(tasknr))
+                hist[row.get_task_points(tasknr)] += 1
+            except KeyError:
+                pass
+        return hist, pts
+
+
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
             self.draw_histogram()
+        elif self.main_stack.get_visible_child_name() == "graphs_page":
+            GLib.timeout_add(500, self.update_task_plots)
 
     def draw_histogram(self):
         if self.block_histogram_update or self.main_stack.get_visible_child_name() != "setup_page":
@@ -368,8 +470,8 @@ class MainWindow:
         self.block_histogram_update = tmp
         self.update_grade_table(None)
         self.grading_table.show_all()
-
         self.rebuild_gradingtable_header()
+        self.generate_task_plots()
 
     def remove_task(self, id: int):
         # First two items are header and seperator
@@ -384,6 +486,7 @@ class MainWindow:
             row.update_entries(self.tasks)
         # self.grading_table.show_all()
         self.rebuild_gradingtable_header()
+        self.generate_task_plots()
 
     def rebuild_gradingtable_header(self):
         for child in self.task_label_box.get_children():
@@ -619,6 +722,8 @@ class MainWindow:
                 self.grading_table.show_all()
                 self.block_histogram_update = tmp
                 self.update_histogram(None, False)
+                self.generate_task_plots()
+                self.update_task_plots()
 
             except ValueError:
                 print("ERROR: Corrupt file")
@@ -655,7 +760,10 @@ class MainWindow:
         self.builder.get_object("passing_spin_but").set_value(10.0)
         self.builder.get_object("stepsize_spin_but").set_value(1.0)
         self.update_grade_table(None)
+        self.ptshistogramax.clear()
         self.update_histogram(None, False)
+        self.generate_task_plots()
+        self.update_task_plots()
         self.modified = False
 
         return True
@@ -849,3 +957,13 @@ class GradingRow(Gtk.Box):
             taskpts["Additional_Points"] = 0.0
         d["Tasks"] = taskpts
         return d
+
+
+    def get_task_points(self, tasknr: int) -> float:
+        def validate_maxpoints(points):
+            return points <= entry[1][0].max_points
+
+        try:
+            return float(self.point_entries[tasknr][1].get_text())
+        except ValueError:
+            return 0.0
