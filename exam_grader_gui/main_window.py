@@ -131,10 +131,12 @@ class MainWindow:
         self.grading_table = self.builder.get_object("grading_tabl")
         self.task_label_box = self.builder.get_object("task_label_box")
         self.histogram_area = self.builder.get_object("histogram_area")
+        self.point_histogram_area = self.builder.get_object("point_histogram_area")
 
         self.modified = False
         self.block_histogram_update = False
-        self.point_table = PointTable(10, 5, 100)
+        self.max_points = 100
+        self.point_table = PointTable(10, 5, self.max_points)
 
         mplfigure = Figure(figsize=(10, 2), dpi=100)
         self.histogramax = mplfigure.add_subplot(111)
@@ -145,9 +147,22 @@ class MainWindow:
         )
         self.histogramax.plot()
         self.canvas = FigureCanvas(mplfigure)
-        self.canvas.set_size_request(450, 200)
+        self.canvas.set_size_request(400, 200)
         self.histogram_area.add_with_viewport(self.canvas)
         self.histogram_area.show_all()
+
+        mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
+        self.ptshistogramax = mplfigure_pts.add_subplot(111)
+        self.pthistogrambars = self.ptshistogramax.bar(
+            range(self.max_points),
+            [1.0] * self.max_points,
+            width=0.5,
+        )
+        self.ptshistogramax.plot()
+        self.ptscanvas = FigureCanvas(mplfigure_pts)
+        self.ptscanvas.set_size_request(400, 200)
+        self.point_histogram_area.add_with_viewport(self.ptscanvas)
+        self.point_histogram_area.show_all()
 
         self.grading_rows = []
         self.update_histogram(None, False)
@@ -184,7 +199,10 @@ class MainWindow:
 
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
+            tmp = self.block_histogram_update
+            self.block_histogram_update = False
             self.draw_histogram()
+            self.block_histogram_update = tmp
         else:
             self.block_histogram_update = True
 
@@ -198,36 +216,13 @@ class MainWindow:
         self.canvas.draw()
         self.canvas.flush_events()
 
-    def update_grade_table(self, widget, was_modified: bool = True):
-        if was_modified:
-            self.modified = True
-        passing_spin = self.builder.get_object("passing_spin_but")
-        passing_pts = passing_spin.get_value()
-        stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
-        stepsize = stepsize_spin_but.get_value()
-        self.point_table = PointTable(passing_pts, stepsize, 100, 0.5)
+        for i, b in enumerate(self.pthistogrambars):
+            b.set_height(self.point_histogram[i])
+        self.ptshistogramax.relim()
+        self.ptshistogramax.autoscale_view()
+        self.ptscanvas.draw()
+        self.ptscanvas.flush_events()
 
-        for i, grade in enumerate(self.point_table.labels):
-            label_from = self.builder.get_object(f"{grade}_from")
-            label_from.set_text(f"{self.point_table.points_min[i]}")
-            label_to = self.builder.get_object(f"{grade}_to")
-            label_to.set_text(f"{self.point_table.points_max[i]}")
-
-        self.block_histogram_update = True
-        for row in self.grading_rows:
-            row.update_entries(self.tasks)
-        self.block_histogram_update = False
-        self.draw_histogram()
-
-    def update_histogram(self, widget, was_modified: bool = True):
-        if was_modified:
-            self.modified = True
-        self.histogram = self.generate_histogram()
-        for grade in self.point_table.labels:
-            label_count = self.builder.get_object(f"{grade}_count")
-            label_count.set_text(f"{self.histogram[grade]}")
-        self.builder.get_object("point_table").show_all()
-        self.draw_histogram()
         if len(self.grading_rows) > 0:
             passed_cnt = len(self.grading_rows) - self.histogram["5.0"]
             self.builder.get_object("passed_label").set_text(str(passed_cnt))
@@ -267,13 +262,54 @@ class MainWindow:
         else:
             self.builder.get_object("passed_label").set_text("0")
             self.builder.get_object("perc_fail_label").set_text("0")
-            self.builder.get_object("perc_fail_label").get_style_context().remove_class("error")
+            self.builder.get_object("perc_fail_label").get_style_context().remove_class(
+                "error"
+            )
             print("remove class")
             self.builder.get_object("avg_grade_label").set_text("0")
             self.builder.get_object("avg_grade_passed_label").set_text("0")
             self.builder.get_object("grade_median_label").set_text("0")
             self.builder.get_object("points_median_label").set_text("0")
             self.builder.get_object("best_grade_label").set_text("0")
+
+    def update_grade_table(self, widget, was_modified: bool = True):
+        if was_modified:
+            self.modified = True
+        passing_spin = self.builder.get_object("passing_spin_but")
+        passing_pts = passing_spin.get_value()
+        stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
+        stepsize = stepsize_spin_but.get_value()
+        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+        self.ptshistogramax.clear()
+        self.pthistogrambars = self.ptshistogramax.bar(
+            range(self.max_points),
+            [1.0] * self.max_points,
+            width=0.5,
+        )
+
+        for i, grade in enumerate(self.point_table.labels):
+            label_from = self.builder.get_object(f"{grade}_from")
+            label_from.set_text(f"{self.point_table.points_min[i]}")
+            label_to = self.builder.get_object(f"{grade}_to")
+            label_to.set_text(f"{self.point_table.points_max[i]}")
+
+        tmp = self.block_histogram_update
+        self.block_histogram_update = True
+        for row in self.grading_rows:
+            row.update_entries(self.tasks)
+        self.block_histogram_update = tmp
+        self.update_histogram(None)
+
+    def update_histogram(self, widget, was_modified: bool = True):
+        if was_modified:
+            self.modified = True
+        self.histogram = self.generate_histogram()
+        self.point_histogram = self.generate_point_histogram()
+        for grade in self.point_table.labels:
+            label_count = self.builder.get_object(f"{grade}_count")
+            label_count.set_text(f"{self.histogram[grade]}")
+        self.builder.get_object("point_table").show_all()
+        self.draw_histogram()
 
     def generate_histogram(self) -> Dict[str, int]:
         hist = {}
@@ -282,6 +318,17 @@ class MainWindow:
         for row in self.grading_rows:
             try:
                 hist[row.grade_final] += 1
+            except KeyError:
+                pass
+        return hist
+
+    def generate_point_histogram(self) -> Dict[str, int]:
+        hist = {}
+        for label in range(self.point_table.points_maximum):
+            hist[label] = 0
+        for row in self.grading_rows:
+            try:
+                hist[row.points_final] += 1
             except KeyError:
                 pass
         return hist
@@ -318,11 +365,14 @@ class MainWindow:
         self.task_list.add(AddTaskRow(self.add_task))
         self.task_list.show_all()
 
+        self.max_points = sum(map(lambda t: t.max_points, self.tasks))
+
+        tmp = self.block_histogram_update
         self.block_histogram_update = True
         for row in self.grading_rows:
             row.update_entries(self.tasks)
-        self.block_histogram_update = False
-        self.draw_histogram()
+        self.block_histogram_update = tmp
+        self.update_grade_table(None)
         self.grading_table.show_all()
 
         self.rebuild_gradingtable_header()
@@ -332,6 +382,9 @@ class MainWindow:
         self.task_list.remove(self.task_list.get_children()[id + 2])
         self.tasks.remove(self.tasks[id])
         self.task_list.show_all()
+
+        self.max_points = sum(map(lambda t: t.max_points, self.tasks))
+        self.update_grade_table(None)
 
         for row in self.grading_rows:
             row.update_entries(self.tasks)
@@ -529,6 +582,8 @@ class MainWindow:
             with filepath.open("r") as f:
                 exam = json.loads(f.read())
             try:
+                tmp = self.block_histogram_update
+                self.block_histogram_update = True
                 self.examname_entry.set_text(exam["General"]["Name"])
                 self.examdate = exam["General"]["Date"]
                 self.builder.get_object("examdate_button_label").set_text(self.examdate)
@@ -544,7 +599,6 @@ class MainWindow:
                 )
                 self.update_grade_table(None, False)
 
-                self.block_histogram_update = True
                 for grading in exam["Grading"]:
                     points = []
                     for t in self.tasks:
@@ -569,7 +623,7 @@ class MainWindow:
                 for row in self.grading_rows:
                     self.grading_table.add(row)
                 self.grading_table.show_all()
-                self.block_histogram_update = False
+                self.block_histogram_update = tmp
                 self.update_histogram(None, False)
 
             except ValueError:
