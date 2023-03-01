@@ -228,6 +228,52 @@ class MainWindow:
             label_count.set_text(f"{self.histogram[grade]}")
         self.builder.get_object("point_table").show_all()
         self.draw_histogram()
+        if len(self.grading_rows) > 0:
+            passed_cnt = len(self.grading_rows) - self.histogram["5.0"]
+            self.builder.get_object("passed_label").set_text(str(passed_cnt))
+            perc_failed = self.histogram["5.0"] / len(self.grading_rows)
+            perc_fail_label = self.builder.get_object("perc_fail_label")
+            if perc_failed > 0.5:
+                perc_fail_label.get_style_context().add_class("error")
+            else:
+                perc_fail_label.get_style_context().remove_class("error")
+            perc_fail_label.set_text(f"{perc_failed * 100.0:.2f}%")
+
+            points = list(map(lambda r: float(r.points_final), self.grading_rows))
+            grades = list(map(lambda r: float(r.grade_final), self.grading_rows))
+            self.builder.get_object("avg_grade_label").set_text(
+                "{:.2f}".format(mean(grades))
+            )
+            self.builder.get_object("grade_median_label").set_text(
+                "{:.2f}".format(median(grades))
+            )
+            self.builder.get_object("points_median_label").set_text(
+                "{:.2f}".format(median(points))
+            )
+            self.builder.get_object("best_grade_label").set_text(str(min(grades)))
+
+            grades_passed = list(
+                map(
+                    lambda r: float(r.grade_final),
+                    filter(lambda r: float(r.grade_final) <= 4.0, self.grading_rows),
+                )
+            )
+            if len(grades_passed) > 0:
+                self.builder.get_object("avg_grade_passed_label").set_text(
+                    "{:.2f}".format(mean(grades_passed))
+                )
+            else:
+                self.builder.get_object("avg_grade_passed_label").set_text("0")
+        else:
+            self.builder.get_object("passed_label").set_text("0")
+            self.builder.get_object("perc_fail_label").set_text("0")
+            self.builder.get_object("perc_fail_label").get_style_context().remove_class("error")
+            print("remove class")
+            self.builder.get_object("avg_grade_label").set_text("0")
+            self.builder.get_object("avg_grade_passed_label").set_text("0")
+            self.builder.get_object("grade_median_label").set_text("0")
+            self.builder.get_object("points_median_label").set_text("0")
+            self.builder.get_object("best_grade_label").set_text("0")
 
     def generate_histogram(self) -> Dict[str, int]:
         hist = {}
@@ -517,7 +563,9 @@ class MainWindow:
                         ),
                     )
 
-                self.grading_rows = list(sorted(self.grading_rows, key=lambda r: r.stud_id))
+                self.grading_rows = list(
+                    sorted(self.grading_rows, key=lambda r: r.stud_id)
+                )
                 for row in self.grading_rows:
                     self.grading_table.add(row)
                 self.grading_table.show_all()
@@ -650,8 +698,8 @@ class GradingRow(Gtk.Box):
 
         self.points = 0.0
         self.points_final = 0.0
-        self.grade = ""
-        self.grade_final = ""
+        self.grade = "5.0"
+        self.grade_final = "5.0"
 
         if points is not None:
             assert len(points) == len(tasks) + 1
