@@ -187,31 +187,9 @@ class MainWindow:
 
         self.tasks: List[ExamTask] = []
         self.add_task("Exampletask", 10, suppress_generations=True)
-        self.add_task("Exampletusk", 20, suppress_generations=True)
         self.generate_task_plots()
 
-        self.grading_rows = [
-            GradingRow(
-                "12345",
-                "Peter",
-                "Pan",
-                1,
-                self.tasks,
-                self.grade_calculation,
-                self.update_histogram,
-            ),
-            GradingRow(
-                "12345",
-                "Hannes",
-                "Pan",
-                3,
-                self.tasks,
-                self.grade_calculation,
-                self.update_histogram,
-            ),
-        ]
-        for row in self.grading_rows:
-            self.grading_table.add(row)
+        self.clear_grading_rows(True)
         self.grading_table.show_all()
         self.rebuild_gradingtable_header()
 
@@ -688,10 +666,19 @@ class MainWindow:
 
         dialog.destroy()
 
-    def clear_grading_rows(self):
+    def clear_grading_rows(self, add_csv_button: bool = False):
         self.grading_rows.clear()
         for child in self.grading_table.get_children()[2:]:
             self.grading_table.remove(child)
+        if add_csv_button:
+            csv_import_button = Gtk.Button()
+            csv_import_button.set_label("Import from CSV")
+            csv_import_button.connect("clicked", self.csv_import)
+            csv_import_button.set_size_request(150, -1)
+            csv_import_button.set_halign(Gtk.Align.CENTER)
+            csv_import_button.get_style_context().add_class("suggested-action")
+            self.grading_table.add(csv_import_button)
+            self.grading_table.show_all()
 
     def clear_tasks(self, rebuild_gradingtable: bool = False):
         # First two items are header and seperator
@@ -810,6 +797,7 @@ class MainWindow:
             file_choose_dialog.destroy()
             if not self.clear(None):
                 return
+            self.grading_table.remove(self.grading_table.get_children()[-1])
             self.processing_revealer.set_reveal_child(True)
             exam = {}
             with filepath.open("r") as f:
@@ -915,7 +903,7 @@ class MainWindow:
         self.examdate = ""
         self.builder.get_object("examdate_button_label").set_text("<Select>")
         self.clear_tasks()
-        self.clear_grading_rows()
+        self.clear_grading_rows(True)
 
         self.builder.get_object("passing_spin_but").set_value(10.0)
         self.builder.get_object("stepsize_spin_but").set_value(1.0)
