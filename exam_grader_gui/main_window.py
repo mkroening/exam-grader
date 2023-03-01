@@ -10,7 +10,11 @@ from gi.repository import Gtk, Gdk, GLib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
-from .gui_helpers import get_content, show_about_dialog, successful_with_open_folder_dialog
+from .gui_helpers import (
+    get_content,
+    show_about_dialog,
+    successful_with_open_folder_dialog,
+)
 from .csv_import import CsvImportDialog
 
 
@@ -461,9 +465,11 @@ class MainWindow:
         examname = self.examname_entry.get_text()
         file_choose_dialog.set_current_name(f"{examname}_results.csv")
 
-        file_choose_dialog.get_widget_for_response(
+        ok_butt = file_choose_dialog.get_widget_for_response(
             Gtk.ResponseType.OK
-        ).get_style_context().add_class("suggested-action")
+        )
+        ok_butt.set_label("Export")
+        ok_butt.get_style_context().add_class("suggested-action")
 
         response = file_choose_dialog.run()
         if response == Gtk.ResponseType.OK:
@@ -480,6 +486,9 @@ class MainWindow:
                     buttons=Gtk.ButtonsType.OK_CANCEL,
                     message_format="File exists. Overwrite?",
                 )
+                warn_dialog.get_widget_for_response(
+                    response_id=Gtk.ResponseType.OK
+                ).get_style_context().add_class("destructive-action")
                 response = warn_dialog.run()
                 warn_dialog.destroy()
                 if response != Gtk.ResponseType.OK:
@@ -608,10 +617,9 @@ class MainWindow:
                     message_format="Overwrite existing data?",
                 )
                 warn_dialog.format_secondary_text("All changes so far will be lost")
-                # TODO: Doesn't work
-                # warn_dialog.get_widget_for_response(
-                #     response_id=Gtk.ResponseType.OK
-                # ).get_style_context().add_class("destructive_action")
+                warn_dialog.get_widget_for_response(
+                    response_id=Gtk.ResponseType.OK
+                ).get_style_context().add_class("destructive-action")
                 response = warn_dialog.run()
                 warn_dialog.destroy()
                 if response != Gtk.ResponseType.OK:
@@ -716,6 +724,12 @@ class MainWindow:
         examname = self.examname_entry.get_text()
         file_choose_dialog.set_current_name(f"{examname}.examgrades")
 
+        ok_butt = file_choose_dialog.get_widget_for_response(
+            Gtk.ResponseType.OK
+        )
+        ok_butt.set_label("Save")
+        ok_butt.get_style_context().add_class("suggested-action")
+
         file_choose_dialog.get_widget_for_response(
             Gtk.ResponseType.OK
         ).get_style_context().add_class("suggested-action")
@@ -735,6 +749,9 @@ class MainWindow:
                     buttons=Gtk.ButtonsType.OK_CANCEL,
                     message_format="File exists. Overwrite?",
                 )
+                warn_dialog.get_widget_for_response(
+                    response_id=Gtk.ResponseType.OK
+                ).get_style_context().add_class("destructive-action")
                 response = warn_dialog.run()
                 warn_dialog.destroy()
                 if response != Gtk.ResponseType.OK:
@@ -790,6 +807,12 @@ class MainWindow:
         all_files_filter = Gtk.FileFilter()
         all_files_filter.set_name("All Files")
         all_files_filter.add_pattern("*")
+
+        ok_butt = file_choose_dialog.get_widget_for_response(
+            Gtk.ResponseType.OK
+        )
+        ok_butt.set_label("Open")
+        ok_butt.get_style_context().add_class("suggested-action")
 
         response = file_choose_dialog.run()
         if response == Gtk.ResponseType.OK:
@@ -894,6 +917,9 @@ class MainWindow:
                 buttons=Gtk.ButtonsType.OK_CANCEL,
                 message_format="This will erase all unsaved modifications",
             )
+            warn_dialog.get_widget_for_response(
+                response_id=Gtk.ResponseType.OK
+            ).get_style_context().add_class("destructive-action")
             response = warn_dialog.run()
             warn_dialog.destroy()
             if response != Gtk.ResponseType.OK:

@@ -211,6 +211,9 @@
                             <attributes>
                               <attribute name="weight" value="bold"/>
                             </attributes>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
                           </object>
                           <packing>
                             <property name="left-attach">0</property>
