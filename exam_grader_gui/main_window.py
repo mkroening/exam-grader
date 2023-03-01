@@ -142,6 +142,7 @@ class MainWindow:
             self.point_table.labels,
             [3.0] * len(self.point_table.labels),
             width=0.5,
+            color=["tab:red"] + ["tab:blue"] * (len(self.point_table.labels)-1)
         )
         self.histogramax.plot()
         self.canvas = FigureCanvas(mplfigure)
@@ -154,7 +155,7 @@ class MainWindow:
         self.pthistogrambars = self.ptshistogramax.bar(
             range(self.max_points),
             [1.0] * self.max_points,
-            width=0.5,
+            width=0.4,
         )
         self.ptshistogramax.plot()
         self.ptscanvas = FigureCanvas(mplfigure_pts)
@@ -197,15 +198,10 @@ class MainWindow:
 
     def main_visible_child_changed(self, widget, data):
         if self.main_stack.get_visible_child_name() == "setup_page":
-            tmp = self.block_histogram_update
-            self.block_histogram_update = False
             self.draw_histogram()
-            self.block_histogram_update = tmp
-        else:
-            self.block_histogram_update = True
 
     def draw_histogram(self):
-        if self.block_histogram_update:
+        if self.block_histogram_update or self.main_stack.get_visible_child_name() != "setup_page":
             return
         for i, b in enumerate(self.histogrambars):
             b.set_height(self.histogram[self.point_table.labels[i]])
@@ -215,7 +211,7 @@ class MainWindow:
         self.canvas.flush_events()
 
         for i, b in enumerate(self.pthistogrambars):
-            b.set_height(self.point_histogram[i])
+            b.set_height(self.point_histogram[float(i/2)])
         self.ptshistogramax.relim()
         self.ptshistogramax.autoscale_view()
         self.ptscanvas.draw()
@@ -278,10 +274,13 @@ class MainWindow:
         stepsize = stepsize_spin_but.get_value()
         self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
         self.ptshistogramax.clear()
+        nr_point_bars = int(self.max_points * 1 / 0.5 + 1)
+        nr_fail_bars = int(self.point_table.points_max[0] * 2)
         self.pthistogrambars = self.ptshistogramax.bar(
-            range(self.max_points),
-            [1.0] * self.max_points,
-            width=0.5,
+            [i * 0.5 for i in range(nr_point_bars)],
+            [1.0] * nr_point_bars,
+            width=0.4,
+            color=["tab:red"] * nr_fail_bars + ["tab:blue"] * (nr_point_bars - nr_fail_bars)
         )
 
         for i, grade in enumerate(self.point_table.labels):
@@ -321,8 +320,8 @@ class MainWindow:
 
     def generate_point_histogram(self) -> Dict[str, int]:
         hist = {}
-        for label in range(self.point_table.points_maximum):
-            hist[label] = 0
+        for label in range(int(self.point_table.points_maximum * 1 / 0.5 + 1.0)):
+            hist[float(label/2.0)] = 0
         for row in self.grading_rows:
             try:
                 hist[row.points_final] += 1
@@ -706,6 +705,8 @@ class TaskRow(Gtk.Box):
     def remove_clicked(self, widget):
         self.cb(self.id)
 
+def round_half_points(f: float)-> float:
+    return int((f + 0.25) / 0.5) * 0.5
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
 class GradingRow(Gtk.Box):
@@ -807,7 +808,7 @@ class GradingRow(Gtk.Box):
             if p is not None:
                 entry[1][1].set_progress_fraction(p / entry[1][0].max_points)
                 sum += p
-        self.points = sum
+        self.points = round_half_points(sum)
         self.total_points_label.set_text(str(self.points))
         self.grade, passed = self.grade_calculation(sum)
         if not passed:
@@ -818,7 +819,7 @@ class GradingRow(Gtk.Box):
         ap = get_content(self.additional_points_entry, float)
         if ap is not None:
             sum += ap
-        self.points_final = sum
+        self.points_final = round_half_points(sum)
         self.total_points_final_label.set_text(str(self.points_final))
         self.grade_final, passed = self.grade_calculation(sum)
         if not passed:
