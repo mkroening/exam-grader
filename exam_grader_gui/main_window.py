@@ -10,7 +10,7 @@ from gi.repository import Gtk, Gdk, GLib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
-from .gui_helpers import get_content, show_about_dialog
+from .gui_helpers import get_content, show_about_dialog, successful_with_open_folder_dialog
 from .csv_import import CsvImportDialog
 
 
@@ -458,7 +458,97 @@ class MainWindow:
         self.builder.get_object("examdate_button").get_popover().popdown()
 
     def export(self, _widget):
-        pass
+        file_choose_dialog = Gtk.FileChooserDialog(
+            "Export CSV",
+            self.window,
+            Gtk.FileChooserAction.SAVE,
+            (
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN,
+                Gtk.ResponseType.OK,
+            ),
+        )
+        csv_file_filter = Gtk.FileFilter()
+        csv_file_filter.set_name("CSV")
+        csv_file_filter.add_mime_type("text/csv")
+        file_choose_dialog.add_filter(csv_file_filter)
+        all_files_filter = Gtk.FileFilter()
+        all_files_filter.set_name("All Files")
+        all_files_filter.add_pattern("*")
+        examname = self.examname_entry.get_text()
+        file_choose_dialog.set_current_name(f"{examname}_results.csv")
+
+        file_choose_dialog.get_widget_for_response(
+            Gtk.ResponseType.OK
+        ).get_style_context().add_class("suggested-action")
+
+        response = file_choose_dialog.run()
+        if response == Gtk.ResponseType.OK:
+            filepath = Path(file_choose_dialog.get_filename())
+            file_choose_dialog.destroy()
+
+            if filepath.exists():
+                warn_dialog = Gtk.MessageDialog(
+                    self.window,
+                    Gtk.DialogFlags.MODAL
+                    | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                    | Gtk.DialogFlags.USE_HEADER_BAR,
+                    type=Gtk.MessageType.WARNING,
+                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                    message_format="File exists. Overwrite?",
+                )
+                response = warn_dialog.run()
+                warn_dialog.destroy()
+                if response != Gtk.ResponseType.OK:
+                    return
+
+            with filepath.open("w", newline="") as f:
+                # TODO: Options:
+                # - Delimiter
+                # - float comma or dot
+                # - trailing separator
+                writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+                header = ["STUDENT_ID", "FIRST_NAME", "FAMILY_NAME", "ATTEMPTS"]
+                for t in self.tasks:
+                    header += [t.name.upper()]
+                header += [
+                    "ADDITIONAL_POINTS",
+                    "TOTAL_POINTS",
+                    "TOTAL_POINTS_FINAL",
+                    "GRADE",
+                    "GRADE_FINAL",
+                ]
+                writer.writerow(header)
+
+                try:
+                    for row in self.grading_rows:
+                        row.on_update(None)
+                        r = [row.stud_id, row.first_name, row.surname, row.trials]
+                        for i, t in enumerate(self.tasks):
+                            r += [row.get_task_points(i)]
+                        r += [row.get_additional_points()]
+                        r += [row.points, row.points_final, row.grade, row.grade_final]
+                        writer.writerow(r)
+                except KeyError:
+                    dialog = Gtk.MessageDialog(
+                        self.window,
+                        Gtk.DialogFlags.MODAL
+                        | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                        | Gtk.DialogFlags.USE_HEADER_BAR,
+                        Gtk.MessageType.ERROR,
+                        Gtk.ButtonsType.OK,
+                        "CSV generation failed",
+                    )
+                    dialog.show_all()
+                    dialog.run()
+                    dialog.destroy()
+                else:
+                    successful_with_open_folder_dialog(
+                        self.window, "Export successful", filepath.parent
+                    )
+
+        file_choose_dialog.destroy()
 
     def add_task(
         self,
@@ -758,6 +848,7 @@ class MainWindow:
                             grading["StudentID"],
                             grading["First_Name"],
                             grading["Surname"],
+                            grading["Attempt"],
                             self.tasks,
                             self.grade_calculation,
                             self.update_histogram,
@@ -913,8 +1004,10 @@ class GradingRow(Gtk.Box):
 
         self.stud_id = student_id
         self.student_id_label.set_text(student_id)
-        self.first_name_label.set_text(first_name)
-        self.surname_label.set_text(surname)
+        self.first_name = first_name
+        self.first_name_label.set_text(self.first_name)
+        self.surname = surname
+        self.surname_label.set_text(self.surname)
         self.grade_calculation = grade_calculation
         self.update_callback = update_callback
 
@@ -1020,6 +1113,7 @@ class GradingRow(Gtk.Box):
             "StudentID": self.student_id_label.get_text(),
             "First_Name": self.first_name_label.get_text(),
             "Surname": self.surname_label.get_text(),
+            "Attempt": self.trials,
         }
         taskpts = {}
         for entry in self.point_entries.items():
@@ -1037,10 +1131,13 @@ class GradingRow(Gtk.Box):
         return d
 
     def get_task_points(self, tasknr: int) -> float:
-        def validate_maxpoints(points):
-            return points <= entry[1][0].max_points
-
         try:
             return float(self.point_entries[tasknr][1].get_text())
+        except ValueError:
+            return 0.0
+
+    def get_additional_points(self) -> float:
+        try:
+            return float(self.additional_points_entry.get_text())
         except ValueError:
             return 0.0
