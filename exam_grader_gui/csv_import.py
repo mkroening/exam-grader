@@ -43,14 +43,26 @@ class CsvImportDialog(Gtk.Dialog):
                             name,
                         ]
                     )
+
+                def search_keyword(keywords) -> int:
+                    for i, s in enumerate(reader.fieldnames):
+                        for kw in keywords:
+                            if s.find(kw) != -1:
+                                return i
+                    return 0
+
                 self.stud_id_combo.set_model(model)
-                self.stud_id_combo.set_active(0)
+                combo_index = search_keyword(["MATRIK", "REGISTRATION", "STUDENT_ID"])
+                self.stud_id_combo.set_active(combo_index)
                 self.first_name_combo.set_model(model)
-                self.first_name_combo.set_active(0)
+                combo_index = search_keyword(["FIRST_NAME", "VORNAME"])
+                self.first_name_combo.set_active(combo_index)
                 self.surname_combo.set_model(model)
-                self.surname_combo.set_active(0)
+                combo_index = search_keyword(["SURNAME", "FAMILY_NAME", "LAST_NAME", "NACHNAME"])
+                self.surname_combo.set_active(combo_index)
                 self.trial_nr_combo.set_model(model)
-                self.trial_nr_combo.set_active(0)
+                combo_index = search_keyword(["TRIAL", "ANTRITTE"])
+                self.trial_nr_combo.set_active(combo_index)
                 self.csv_col_selection_revealer.set_reveal_child(True)
             else:
                 raise RuntimeError("Unimplemented")
