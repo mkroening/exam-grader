@@ -132,6 +132,7 @@ class MainWindow:
         self.point_histogram_area = self.builder.get_object("point_histogram_area")
         self.total_exam_stat = self.builder.get_object("statistics")
         self.task_diagram_box = self.builder.get_object("task_diagram_box")
+        self.processing_revealer = self.builder.get_object("processing_revealer")
 
         self.modified = False
         self.block_histogram_update = False
@@ -184,8 +185,8 @@ class MainWindow:
         self.update_histogram(None, False)
 
         self.tasks: List[ExamTask] = []
-        self.add_task("Exampletask", 10)
-        self.add_task("Exampletusk", 20)
+        self.add_task("Exampletask", 10, suppress_generations=True)
+        self.add_task("Exampletusk", 20, suppress_generations=True)
         self.generate_task_plots()
 
         self.grading_rows = [
@@ -214,6 +215,7 @@ class MainWindow:
         self.modified = False
 
         self.window.show_all()
+        self.processing_revealer.set_reveal_child(False)
 
     def generate_task_plot(self, tasknr: int) -> Dict[str, Any]:
         task = self.tasks[tasknr]
@@ -252,6 +254,8 @@ class MainWindow:
 
 
     def update_task_plots(self):
+        rev_is_active = self.processing_revealer.get_child_revealed()
+        self.processing_revealer.set_reveal_child(True)
         tasknames = []
         taskpts = []
         for tn, p in self.taskplots.items():
@@ -278,6 +282,8 @@ class MainWindow:
             self.boxplt_ax.plot()
         self.boxcanvas.draw()
         self.boxcanvas.flush_events()
+        if not rev_is_active:
+            self.processing_revealer.set_reveal_child(False)
 
         return False
 
@@ -451,7 +457,7 @@ class MainWindow:
     def export(self, _widget):
         pass
 
-    def add_task(self, name: str, points: int, id: Optional[int] = None):
+    def add_task(self, name: str, points: int, id: Optional[int] = None, suppress_generations: bool=False):
         self.modified = True
         if id is None:
             id = random.randint(1, 100000000)
@@ -468,10 +474,11 @@ class MainWindow:
         for row in self.grading_rows:
             row.update_entries(self.tasks)
         self.block_histogram_update = tmp
-        self.update_grade_table(None)
-        self.grading_table.show_all()
-        self.rebuild_gradingtable_header()
-        self.generate_task_plots()
+        if not suppress_generations:
+            self.update_grade_table(None)
+            self.grading_table.show_all()
+            self.rebuild_gradingtable_header()
+            self.generate_task_plots()
 
     def remove_task(self, id: int):
         # First two items are header and seperator
@@ -675,6 +682,7 @@ class MainWindow:
             file_choose_dialog.destroy()
             if not self.clear(None):
                 return
+            self.processing_revealer.set_reveal_child(True)
             exam = {}
             with filepath.open("r") as f:
                 exam = json.loads(f.read())
@@ -686,7 +694,7 @@ class MainWindow:
                 self.builder.get_object("examdate_button_label").set_text(self.examdate)
 
                 for t in exam["Tasks"]:
-                    self.add_task(t["Name"], t["Max_Points"], t["ID"])
+                    self.add_task(t["Name"], t["Max_Points"], t["ID"], suppress_generations=True)
 
                 self.builder.get_object("passing_spin_but").set_value(
                     exam["PointTable"]["passing"]
@@ -695,6 +703,7 @@ class MainWindow:
                     exam["PointTable"]["step"]
                 )
                 self.update_grade_table(None, False)
+                self.rebuild_gradingtable_header()
 
                 for grading in exam["Grading"]:
                     points = []
@@ -730,6 +739,7 @@ class MainWindow:
                 self.clear(None)
 
             self.modified = False
+            self.processing_revealer.set_reveal_child(False)
         else:
             file_choose_dialog.destroy()
 
