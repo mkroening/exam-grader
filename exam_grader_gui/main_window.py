@@ -1,6 +1,7 @@
 import random
 import json
 import csv
+from itertools import chain
 from statistics import mean, median
 from dataclasses import dataclass
 from enum import Enum
@@ -180,8 +181,27 @@ class MainWindow:
         )
         self.boxplt_ax.plot()
         self.boxcanvas = FigureCanvas(figure_boxplt)
-        self.boxcanvas.set_size_request(600, 300)
-        self.total_exam_stat.add_with_viewport(self.boxcanvas)
+        self.boxcanvas.set_size_request(500, 300)
+        self.total_exam_stat.add(self.boxcanvas)
+
+        mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
+        self.ptshistogramax2 = mplfigure_pts.add_subplot(111)
+        self.ptshistogramax2_box = self.ptshistogramax2.twinx()
+        self.ptshistogramax2_box.set_ylim(0, 1)
+        self.pthistogrambars2 = self.ptshistogramax2.bar(
+            range(self.max_points),
+            [1.0] * self.max_points,
+            width=0.4,
+        )
+
+        self.ptshistogramax2.set_title("Exam Point Distributions")
+        self.ptshistogramax2.set_ylabel("Count")
+        self.ptshistogramax2.set_xlabel("Points")
+
+        self.ptshistogramax2.plot()
+        self.ptscanvas2 = FigureCanvas(mplfigure_pts)
+        self.ptscanvas2.set_size_request(500, 300)
+        self.total_exam_stat.add(self.ptscanvas2)
         self.total_exam_stat.show_all()
 
         self.taskplots = {}
@@ -263,11 +283,15 @@ class MainWindow:
                 self.boxplt_ax.hlines(
                     t.max_points, i + 0.7, i + 1.3, linewidth=2, color="black"
                 )
-            self.boxplt_ax.set_title("Exam Point Distribution")
+            self.boxplt_ax.set_title("Task Point Distributions")
             self.boxplt_ax.set_ylabel("Points")
             self.boxplt_ax.plot()
         self.boxcanvas.draw()
         self.boxcanvas.flush_events()
+
+        self.update_histogram(None, was_modified=False, redraw=False)
+        self.draw_big_histogram()
+
         if not rev_is_active:
             self.processing_revealer.set_reveal_child(False)
 
@@ -365,6 +389,34 @@ class MainWindow:
             self.builder.get_object("points_max_label").set_text("0")
             self.builder.get_object("best_grade_label").set_text("0")
 
+    def draw_big_histogram(self):
+        points = list(
+            chain.from_iterable([[p] * cnt for p, cnt in self.point_histogram.items()])
+        )
+        self.ptshistogramax2_box.clear()
+        style = dict(alpha=0.25)
+        self.ptshistogramax2_box.boxplot(
+            points,
+            vert=False,
+            positions=[0.5],
+            widths=0.1,
+            boxprops=style,
+            flierprops=style,
+            whiskerprops=style,
+            capprops=style,
+            meanprops=style,
+        )
+        self.ptshistogramax2_box.set_yticks([])
+
+        for i, b in enumerate(self.pthistogrambars2):
+            # b.set_height(self.point_histogram.get(float(i/2), 0.0))
+            b.set_height(self.point_histogram[float(i / 2)])
+
+        self.ptshistogramax2.relim()
+        self.ptshistogramax2.autoscale_view()
+        self.ptscanvas2.draw()
+        self.ptscanvas2.flush_events()
+
     def on_gradetable_changed(self, widget):
         GLib.idle_add(self.update_grade_table, None)
 
@@ -377,9 +429,20 @@ class MainWindow:
         stepsize = stepsize_spin_but.get_value()
         self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
         self.ptshistogramax.clear()
+        self.ptshistogramax2.clear()
+        self.ptshistogramax2.set_title("Exam Point Distributions")
+        self.ptshistogramax2.set_ylabel("Count")
+        self.ptshistogramax2.set_xlabel("Points")
         nr_point_bars = int(self.max_points * 1 / 0.5 + 1)
         nr_fail_bars = int(self.point_table.points_max[0] * 2)
         self.pthistogrambars = self.ptshistogramax.bar(
+            [i * 0.5 for i in range(nr_point_bars)],
+            [1.0] * nr_point_bars,
+            width=0.4,
+            color=["tab:red"] * nr_fail_bars
+            + ["tab:blue"] * (nr_point_bars - nr_fail_bars),
+        )
+        self.pthistogrambars2 = self.ptshistogramax2.bar(
             [i * 0.5 for i in range(nr_point_bars)],
             [1.0] * nr_point_bars,
             width=0.4,
@@ -401,7 +464,7 @@ class MainWindow:
         self.update_histogram(None)
         return False
 
-    def update_histogram(self, widget, was_modified: bool = True):
+    def update_histogram(self, widget, was_modified: bool = True, redraw: bool = True):
         if was_modified:
             self.modified = True
         self.histogram = self.generate_histogram()
@@ -410,7 +473,8 @@ class MainWindow:
             label_count = self.builder.get_object(f"{grade}_count")
             label_count.set_text(f"{self.histogram[grade]}")
         self.builder.get_object("point_table").show_all()
-        self.draw_histogram()
+        if redraw:
+            self.draw_histogram()
 
     def generate_histogram(self) -> Dict[str, int]:
         hist = {}
