@@ -335,6 +335,9 @@ class MainWindow:
             self.builder.get_object("points_median_label").set_text(
                 "{:.2f}".format(median(points))
             )
+            self.builder.get_object("points_max_label").set_text(
+                "{:.2f}".format(max(points))
+            )
             self.builder.get_object("best_grade_label").set_text(str(min(grades)))
 
             grades_passed = list(
@@ -359,6 +362,7 @@ class MainWindow:
             self.builder.get_object("avg_grade_passed_label").set_text("0")
             self.builder.get_object("grade_median_label").set_text("0")
             self.builder.get_object("points_median_label").set_text("0")
+            self.builder.get_object("points_max_label").set_text("0")
             self.builder.get_object("best_grade_label").set_text("0")
 
     def on_gradetable_changed(self, widget):
