@@ -443,7 +443,7 @@ class MainWindow:
     def on_examdate_clicked(self, widget):
         self.modified = True
         date = widget.get_date()
-        self.examdate = f"{date.year}-{date.month}-{date.day}"
+        self.examdate = f"{date.year}-{date.month+1}-{date.day}"
         self.builder.get_object("examdate_button_label").set_text(self.examdate)
         self.builder.get_object("examdate_button").get_popover().popdown()
 
