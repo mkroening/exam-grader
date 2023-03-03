@@ -259,6 +259,10 @@ class MainWindow:
         self.boxplt_ax.clear()
         if len(taskpts) > 0:
             self.boxplt = self.boxplt_ax.boxplot(taskpts, labels=tasknames)
+            for i, t in enumerate(self.tasks):
+                self.boxplt_ax.hlines(
+                    t.max_points, i + 0.7, i + 1.3, linewidth=2, color="black"
+                )
             self.boxplt_ax.set_title("Exam Point Distribution")
             self.boxplt_ax.set_ylabel("Points")
             self.boxplt_ax.plot()
