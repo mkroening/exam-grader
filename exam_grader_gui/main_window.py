@@ -623,7 +623,7 @@ class MainWindow:
             label = Gtk.Label(f"T{i}:\n{t.name[0:12]}")
             label.set_size_request(90, -1)
             label.set_justify(Gtk.Justification.CENTER)
-            label.set_tooltip_text(f"T{i}:\n{t.name}")
+            label.set_tooltip_text(f"Task {i}:\n{t.name}")
             self.task_label_box.add(label)
         self.task_label_box.show_all()
 
