@@ -13,7 +13,7 @@ from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCan
 from matplotlib.figure import Figure
 
 from .csv_import import CsvImportDialog
-from .exam import ExamTask, PointTable
+from .exam import ExamTask, GradeState, GradeType, PointTable
 from .grading_table import GradingRow
 from .gui_helpers import (
     get_content,
@@ -245,8 +245,12 @@ class MainWindow:
             hist[float(label / 2.0)] = 0
         for row in self.grading_rows:
             try:
-                pts.append(row.get_task_points(tasknr))
-                hist[row.get_task_points(tasknr)] += 1
+                if (
+                    row.grade_type == GradeType.NOTE
+                    or row.grade_type == GradeType.BESTANDEN
+                ):
+                    pts.append(row.get_task_points(tasknr))
+                    hist[row.get_task_points(tasknr)] += 1
             except KeyError:
                 pass
         return hist, pts
@@ -288,8 +292,18 @@ class MainWindow:
                 perc_fail_label.get_style_context().remove_class("error")
             perc_fail_label.set_text(f"{perc_failed * 100.0:.2f}%")
 
-            points = list(map(lambda r: float(r.points_final), self.grading_rows))
-            grades = list(map(lambda r: float(r.grade_final), self.grading_rows))
+            points = []
+            grades = []
+            for r in self.grading_rows:
+                try:
+                    points.append(float(r.points_final))
+                except ValueError:
+                    pass
+                try:
+                    grades.append(float(r.grade_final))
+                except ValueError:
+                    pass
+
             self.builder.get_object("avg_grade_label").set_text(
                 "{:.2f}".format(mean(grades))
             )
@@ -305,10 +319,7 @@ class MainWindow:
             self.builder.get_object("best_grade_label").set_text(str(min(grades)))
 
             grades_passed = list(
-                map(
-                    lambda r: float(r.grade_final),
-                    filter(lambda r: float(r.grade_final) <= 4.0, self.grading_rows),
-                )
+                filter(lambda g: g <= 4.0, grades),
             )
             if len(grades_passed) > 0:
                 self.builder.get_object("avg_grade_passed_label").set_text(
@@ -418,7 +429,7 @@ class MainWindow:
 
     def generate_histogram(self) -> Dict[str, int]:
         hist = {}
-        for label in self.point_table.labels:
+        for label in self.point_table.all_labels:
             hist[label] = 0
         for row in self.grading_rows:
             try:
@@ -427,19 +438,25 @@ class MainWindow:
                 pass
         return hist
 
-    def generate_point_histogram(self) -> Dict[str, int]:
+    def generate_point_histogram(self) -> Dict[float, int]:
         hist = {}
         for label in range(int(self.point_table.points_maximum * 1 / 0.5 + 1.0)):
             hist[float(label / 2.0)] = 0
         for row in self.grading_rows:
             try:
-                hist[row.points_final] += 1
+                if (
+                    row.grade_type == GradeType.NOTE
+                    or row.grade_type == GradeType.BESTANDEN
+                ):
+                    hist[row.points_final] += 1
             except KeyError:
                 pass
         return hist
 
-    def grade_calculation(self, points: float) -> str:
-        return self.point_table.grade(points)
+    def grade_calculation(
+        self, points: float, type: GradeType
+    ) -> Tuple[str, GradeState]:
+        return self.point_table.grade(points, type)
 
     def on_about_clicked(self, _widget):
         self.help_menu_popover.popdown()
@@ -663,6 +680,7 @@ class MainWindow:
                                 self.tasks,
                                 self.grade_calculation,
                                 self.update_histogram,
+                                self.point_table.liststore,
                             )
                         )
                 except ValueError:
@@ -880,7 +898,9 @@ class MainWindow:
                             self.tasks,
                             self.grade_calculation,
                             self.update_histogram,
+                            GradeType.from_shortname(grading.get("GradeState", "")),
                             points,
+                            self.point_table.liststore,
                         ),
                     )
 

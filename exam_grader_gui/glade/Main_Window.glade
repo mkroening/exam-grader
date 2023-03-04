@@ -7,6 +7,11 @@
     <property name="can-focus">False</property>
     <property name="icon-name">document-import-symbolic</property>
   </object>
+  <object class="GtkImage" id="delete_image">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">edit-delete-symbolic</property>
+  </object>
   <object class="GtkPopover" id="examdate_select_popover">
     <property name="can-focus">False</property>
     <child>
@@ -1658,22 +1663,6 @@
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="spacing">5</property>
-                                    <child type="center">
-                                      <object class="GtkBox" id="task_label_box">
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="spacing">5</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
-                                        <property name="position">9</property>
-                                      </packing>
-                                    </child>
                                     <child>
                                       <object class="GtkLabel" id="student_id_label">
                                         <property name="width-request">100</property>
@@ -1735,9 +1724,14 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkSeparator">
+                                      <object class="GtkLabel" id="state_label">
+                                        <property name="width-request">90</property>
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">State</property>
+                                        <property name="justify">center</property>
+                                        <property name="xalign">0.5</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1746,85 +1740,29 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkLabel" id="grade_final_label">
-                                        <property name="width-request">80</property>
+                                      <object class="GtkSeparator" id="s1">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points (final)"</property>
-                                        <property name="halign">center</property>
-                                        <property name="label" translatable="yes">Grade
-(final)</property>
-                                        <property name="justify">center</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
                                         <property name="position">5</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkLabel" id="grade_label">
-                                        <property name="width-request">80</property>
+                                      <object class="GtkBox" id="task_label_box">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points"</property>
-                                        <property name="halign">center</property>
-                                        <property name="label" translatable="yes">Grade</property>
-                                        <property name="justify">center</property>
+                                        <property name="spacing">5</property>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
                                         <property name="position">6</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="total_points_final_label">
-                                        <property name="width-request">80</property>
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
-                                        <property name="halign">center</property>
-                                        <property name="label" translatable="yes">Total Points
-(final)</property>
-                                        <property name="justify">center</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
-                                        <property name="position">7</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="total_points_label">
-                                        <property name="width-request">80</property>
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
-                                        <property name="halign">center</property>
-                                        <property name="label" translatable="yes">Total Points</property>
-                                        <property name="justify">center</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
-                                        <property name="position">8</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSeparator">
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
-                                        <property name="position">9</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1842,8 +1780,101 @@ Points</property>
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="pack-type">end</property>
+                                        <property name="position">7</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSeparator" id="s2">
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">8</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="total_points_label">
+                                        <property name="width-request">80</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">Total Points</property>
+                                        <property name="justify">center</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">9</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="total_points_final_label">
+                                        <property name="width-request">80</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">Total Points
+(final)</property>
+                                        <property name="justify">center</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">10</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="grade_label">
+                                        <property name="width-request">80</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points"</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">Grade</property>
+                                        <property name="justify">center</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">11</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="grade_final_label">
+                                        <property name="width-request">80</property>
+                                        <property name="visible">True</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points (final)"</property>
+                                        <property name="halign">center</property>
+                                        <property name="label" translatable="yes">Grade
+(final)</property>
+                                        <property name="justify">center</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">12</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="delete_button">
+                                        <property name="sensitive">False</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="receives-default">True</property>
+                                        <property name="image">delete_image</property>
+                                        <property name="relief">none</property>
+                                        <style>
+                                          <class name="flat"/>
+                                        </style>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">13</property>
                                       </packing>
                                     </child>
                                   </object>

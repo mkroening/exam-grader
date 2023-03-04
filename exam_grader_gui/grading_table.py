@@ -1,13 +1,18 @@
-from gi.repository import Gtk
 from pathlib import Path
-from typing import Callable, List, Dict, Any, Optional, Tuple
-from .exam import ExamTask
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from gi.repository import Gtk
+
+from .exam import ExamTask, GradeState, GradeType
 from .gui_helpers import get_content
 
 
 def round_half_points(f: float) -> float:
     return int((f + 0.25) / 0.5) * 0.5
+
+
+def empty_cb(widget, data):
+    return True
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
@@ -23,6 +28,8 @@ class GradingRow(Gtk.Box):
     grade_label = Gtk.Template.Child("grade_label")
     grade_final_label = Gtk.Template.Child("grade_final_label")
     task_point_area = Gtk.Template.Child("task_points")
+    state_combo = Gtk.Template.Child("state_combo")
+    delete_button = Gtk.Template.Child("delete_button")
 
     additional_points_entry = Gtk.Template.Child("additional_points_entry")
 
@@ -33,9 +40,13 @@ class GradingRow(Gtk.Box):
         surname: str,
         trials: int,
         tasks: [ExamTask],
-        grade_calculation: Callable[["MainWindow", Tuple[float, bool]], str],
+        grade_calculation: Callable[
+            ["MainWindow", float, GradeType], Tuple[str, GradeState]
+        ],
         update_callback: Callable[["MainWindow"], None],
+        grade_type: GradeType = GradeType.NOTE,
         points: Optional[List[float]] = None,
+        examstates: Gtk.ListStore = None,
     ):
         super(Gtk.Box, self).__init__()
 
@@ -52,6 +63,14 @@ class GradingRow(Gtk.Box):
         self.trials_label.set_text(str(self.trials))
         if trials > 2:
             self.trials_label.get_style_context().add_class("warning")
+
+        if examstates is not None:
+            self.state_combo.set_model(examstates)
+        self.grade_type = grade_type
+        self.state_combo.set_active(grade_type)
+        self.state_combo.connect("changed", self.on_update)
+        # Disable the Mouse scroll, to avoid unintentional changes
+        self.state_combo.connect("scroll_event", empty_cb)
 
         self.point_entries = {}
 
@@ -121,19 +140,33 @@ class GradingRow(Gtk.Box):
                 sum += p
         self.points = round_half_points(sum)
         self.total_points_label.set_text(str(self.points))
-        self.grade, passed = self.grade_calculation(sum)
-        if not passed:
+
+        active = self.state_combo.get_active()
+        if active == -1:
+            print("-1 active")
+            active = 0
+        self.grade_type = GradeType(active)
+        self.set_dim_entries(
+            not (
+                self.grade_type == GradeType.NOTE
+                or self.grade_type == GradeType.BESTANDEN
+            )
+        )
+        self.grade, state = self.grade_calculation(sum, self.grade_type)
+        self.grade_label.set_text(self.grade)
+        if state == GradeState.FAIL:
             self.grade_label.get_style_context().add_class("error")
         else:
             self.grade_label.get_style_context().remove_class("error")
-        self.grade_label.set_text(str(self.grade))
+
         ap = get_content(self.additional_points_entry, float)
         if ap is not None:
             sum += ap
         self.points_final = round_half_points(sum)
         self.total_points_final_label.set_text(str(self.points_final))
-        self.grade_final, passed = self.grade_calculation(sum)
-        if not passed:
+
+        self.grade_final, state = self.grade_calculation(sum, self.grade_type)
+        if state == GradeState.FAIL:
             self.grade_final_label.get_style_context().add_class("error")
             if self.trials > 2:
                 self.first_name_label.get_style_context().add_class("error")
@@ -142,8 +175,20 @@ class GradingRow(Gtk.Box):
             self.grade_final_label.get_style_context().remove_class("error")
             self.first_name_label.get_style_context().remove_class("error")
             self.surname_label.get_style_context().remove_class("error")
-        self.grade_final_label.set_text(str(self.grade_final))
+        self.grade_final_label.set_text(self.grade_final)
         self.update_callback(self)
+
+    def set_dim_entries(self, dim: bool):
+        self.student_id_label.set_sensitive(not dim)
+        self.first_name_label.set_sensitive(not dim)
+        self.surname_label.set_sensitive(not dim)
+        self.trials_label.set_sensitive(not dim)
+        self.total_points_label.set_sensitive(not dim)
+        self.total_points_final_label.set_sensitive(not dim)
+        self.grade_label.set_sensitive(not dim)
+        self.grade_final_label.set_sensitive(not dim)
+        for entry in self.point_entries.items():
+            entry[1][1].set_sensitive(not dim)
 
     def as_dict(self) -> Dict[str, Any]:
         d = {
@@ -151,6 +196,7 @@ class GradingRow(Gtk.Box):
             "First_Name": self.first_name_label.get_text(),
             "Surname": self.surname_label.get_text(),
             "Attempt": self.trials,
+            "GradeState": GradeType(self.state_combo.get_active()).shortname(),
         }
         taskpts = {}
         for entry in self.point_entries.items():
