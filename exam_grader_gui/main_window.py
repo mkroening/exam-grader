@@ -1,8 +1,6 @@
 import csv
 import json
 import random
-from dataclasses import dataclass
-from enum import Enum
 from itertools import chain
 from pathlib import Path
 from statistics import mean, median
@@ -237,7 +235,7 @@ class MainWindow:
 
         return False
 
-    def task_histogram(self, tasknr: int) -> Tuple[Dict[int, int], List[float]]:
+    def task_histogram(self, tasknr: int) -> Tuple[Dict[float, int], List[float]]:
         hist = {}
         pts = []
         t = self.tasks[tasknr]
@@ -494,9 +492,7 @@ class MainWindow:
         examname = self.examname_entry.get_text()
         file_choose_dialog.set_current_name(f"{examname}_results.csv")
 
-        ok_butt = file_choose_dialog.get_widget_for_response(
-            Gtk.ResponseType.OK
-        )
+        ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
         ok_butt.set_label("Export")
         ok_butt.get_style_context().add_class("suggested-action")
 
@@ -754,9 +750,7 @@ class MainWindow:
         examname = self.examname_entry.get_text()
         file_choose_dialog.set_current_name(f"{examname}.examgrades")
 
-        ok_butt = file_choose_dialog.get_widget_for_response(
-            Gtk.ResponseType.OK
-        )
+        ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
         ok_butt.set_label("Save")
         ok_butt.get_style_context().add_class("suggested-action")
 
@@ -838,9 +832,7 @@ class MainWindow:
         all_files_filter.set_name("All Files")
         all_files_filter.add_pattern("*")
 
-        ok_butt = file_choose_dialog.get_widget_for_response(
-            Gtk.ResponseType.OK
-        )
+        ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
         ok_butt.set_label("Open")
         ok_butt.get_style_context().add_class("suggested-action")
 
