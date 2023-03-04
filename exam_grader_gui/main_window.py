@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from gi.repository import Gdk, GLib, Gtk
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
 
 from .csv_import import CsvImportDialog
 from .exam import ExamTask, GradeState, GradeType, PointTable
@@ -104,6 +105,7 @@ class MainWindow:
 
         mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
         self.ptshistogramax = mplfigure_pts.add_subplot(111)
+        self.ptshistogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
         self.pthistogrambars = self.ptshistogramax.bar(
             range(self.max_points),
             [1.0] * self.max_points,
@@ -129,6 +131,7 @@ class MainWindow:
 
         mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
         self.ptshistogramax2 = mplfigure_pts.add_subplot(111)
+        self.ptshistogramax2.yaxis.set_major_locator(MaxNLocator(integer=True))
         self.ptshistogramax2_box = self.ptshistogramax2.twinx()
         self.ptshistogramax2_box.set_ylim(0, 1)
         self.pthistogrambars2 = self.ptshistogramax2.bar(
@@ -195,6 +198,7 @@ class MainWindow:
         ax.set_title(f"T{tasknr} - {task.name}")
         ax.set_xlabel("Points")
         ax.set_ylabel("Students")
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         nr_point_bars = int(task.max_points * 1 / 0.5 + 1)
         bar = ax.bar(
             [i * 0.5 for i in range(nr_point_bars)],
@@ -343,6 +347,7 @@ class MainWindow:
                 except ValueError:
                     pass
 
+            self.builder.get_object("participants_label").set_text(str(len(grades)))
             self.builder.get_object("avg_grade_label").set_text(
                 "{:.2f}".format(mean(grades))
             )
@@ -367,6 +372,7 @@ class MainWindow:
             else:
                 self.builder.get_object("avg_grade_passed_label").set_text("0")
         else:
+            self.builder.get_object("participants_label").set_text("0")
             self.builder.get_object("passed_label").set_text("0")
             self.builder.get_object("perc_fail_label").set_text("0")
             self.builder.get_object("perc_fail_label").get_style_context().remove_class(
@@ -388,7 +394,7 @@ class MainWindow:
         self.ptshistogramax2_box.boxplot(
             points,
             vert=False,
-            positions=[0.5],
+            positions=[0.8],
             widths=0.1,
             boxprops=style,
             flierprops=style,
@@ -397,6 +403,7 @@ class MainWindow:
             meanprops=style,
         )
         self.ptshistogramax2_box.set_yticks([])
+        self.ptshistogramax2_box.set_ylim(bottom=0.0, top=1.0)
 
         for i, b in enumerate(self.pthistogrambars2):
             # b.set_height(self.point_histogram.get(float(i/2), 0.0))
