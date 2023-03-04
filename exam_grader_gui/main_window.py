@@ -52,7 +52,7 @@ class MainWindow:
         )
 
         handlers = {
-            "onDestroy": Gtk.main_quit,
+            "on_quit": self.quit_with_confirmation,
             "on_about_clicked": self.on_about_clicked,
             "export_clicked": self.export,
             "on_examname_changed": self.on_examname_changed,
@@ -160,6 +160,28 @@ class MainWindow:
 
         self.window.show_all()
         self.processing_revealer.set_reveal_child(False)
+
+    def quit_with_confirmation(self, widget, data):
+        if self.modified:
+            warn_dialog = Gtk.MessageDialog(
+                self.window,
+                Gtk.DialogFlags.MODAL
+                | Gtk.DialogFlags.DESTROY_WITH_PARENT
+                | Gtk.DialogFlags.USE_HEADER_BAR,
+                type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.OK_CANCEL,
+                message_format="Unsaved changes, really quit?",
+            )
+            warn_dialog.get_widget_for_response(
+                response_id=Gtk.ResponseType.OK
+            ).get_style_context().add_class("destructive-action")
+            response = warn_dialog.run()
+            warn_dialog.destroy()
+            if response != Gtk.ResponseType.OK:
+                return True
+        # Continue with closing procedure
+        Gtk.main_quit(widget)
+        return False
 
     def generate_task_plot(self, tasknr: int) -> Dict[str, Any]:
         task = self.tasks[tasknr]
