@@ -300,7 +300,9 @@ class MainWindow:
         self.ptshistogramax.autoscale_view()
         self.ptscanvas.draw()
         self.ptscanvas.flush_events()
+        self.update_statistics()
 
+    def update_statistics(self, widget=None):
         if len(self.grading_rows) > 0:
             passed_cnt = len(self.grading_rows) - self.histogram["5.0"]
             self.builder.get_object("passed_label").set_text(str(passed_cnt))
