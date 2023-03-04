@@ -79,6 +79,9 @@ class MainWindow:
         self.total_exam_stat = self.builder.get_object("statistics")
         self.task_diagram_box = self.builder.get_object("task_diagram_box")
         self.processing_revealer = self.builder.get_object("processing_revealer")
+        self.grade_separators_checkbox = self.builder.get_object(
+            "grade_separators_checkbox"
+        )
 
         self.modified = False
         self.block_histogram_update = False
@@ -111,6 +114,8 @@ class MainWindow:
         self.ptscanvas.set_size_request(400, 200)
         self.point_histogram_area.add_with_viewport(self.ptscanvas)
         self.point_histogram_area.show_all()
+        self.pthistogramseps = []
+        self.bigpthistogramseps = []
 
         figure_boxplt = Figure(figsize=(10, 2), dpi=100)
         self.boxplt_ax = figure_boxplt.add_subplot(111)
@@ -275,7 +280,7 @@ class MainWindow:
                 pass
         return hist, pts
 
-    def main_visible_child_changed(self, widget, data):
+    def main_visible_child_changed(self, widget, data=None):
         if self.main_stack.get_visible_child_name() == "setup_page":
             self.draw_histogram()
         elif self.main_stack.get_visible_child_name() == "graphs_page":
@@ -297,6 +302,18 @@ class MainWindow:
         for i, b in enumerate(self.pthistogrambars):
             b.set_height(self.point_histogram[float(i / 2)])
         self.ptshistogramax.relim()
+
+        if self.grade_separators_checkbox.get_active():
+            for x in self.point_table.points_min:
+                if x != 0.0:
+                    self.pthistogramseps.append(
+                        self.ptshistogramax.axvline(x, alpha=0.1, lw=0.5, c="black")
+                    )
+        else:
+            for sep in self.pthistogramseps:
+                sep.remove()
+            self.pthistogramseps.clear()
+
         self.ptshistogramax.autoscale_view()
         self.ptscanvas.draw()
         self.ptscanvas.flush_events()
@@ -384,6 +401,17 @@ class MainWindow:
         for i, b in enumerate(self.pthistogrambars2):
             # b.set_height(self.point_histogram.get(float(i/2), 0.0))
             b.set_height(self.point_histogram[float(i / 2)])
+
+        if self.grade_separators_checkbox.get_active():
+            for x in self.point_table.points_min:
+                if x != 0.0:
+                    self.bigpthistogramseps.append(
+                        self.ptshistogramax2.axvline(x, alpha=0.1, lw=0.5, c="black")
+                    )
+        else:
+            for sep in self.bigpthistogramseps:
+                sep.remove()
+            self.bigpthistogramseps.clear()
 
         self.ptshistogramax2.relim()
         self.ptshistogramax2.autoscale_view()
