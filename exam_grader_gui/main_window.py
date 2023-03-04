@@ -214,7 +214,7 @@ class MainWindow:
             p["canvas"].flush_events()
 
         for i, t in enumerate(self.tasks):
-            tasknames.append(t.name)
+            tasknames.append(("\n" if i % 2 == 1 else "") + t.name)
 
         self.boxplt_ax.clear()
         if len(taskpts) > 0:
