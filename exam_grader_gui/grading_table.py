@@ -3,6 +3,7 @@ from __future__ import annotations
 from bisect import insort
 from copy import copy
 from dataclasses import dataclass
+from enum import IntEnum, unique
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -533,7 +534,30 @@ class GradingRow(Gtk.Box):
         self.row_changed_cb()
 
 
-def grading_row_sort_func(row_1, row_2, data, notify_destroy):
+@unique
+class SortKeys(IntEnum):
+    ID = 0
+    FIRST_NAME = 1
+    SURNAME = 2
+    ATTEMPTS = 3
+    POINTS = 4
+
+    def as_str(self) -> str:
+        return SortKeys.names()[self]
+
+    @classmethod
+    def names(cls) -> List[str]:
+        return ["ID", "First Name", "Surname", "Attempts", "Points"]
+
+    @classmethod
+    def as_liststore(cls) -> Gtk.ListStore:
+        liststore = Gtk.ListStore(str)
+        for n in cls.names():
+            liststore.append([n])
+        return liststore
+
+
+def grading_row_sort_func(row_1, row_2, data: SortKeys, notify_destroy):
     # True: Swap
     # False: Keep
 
@@ -555,7 +579,16 @@ def grading_row_sort_func(row_1, row_2, data, notify_destroy):
         if type(c2) == Gtk.Separator:
             return True
         if type(c2) == GradingRow:
-            return c1.id > c2.id
+            if data == SortKeys.ID:
+                return c1.id > c2.id
+            elif data == SortKeys.FIRST_NAME:
+                return c1.student.first_name > c2.student.first_name
+            elif data == SortKeys.SURNAME:
+                return c1.student.surname > c2.student.surname
+            elif data == SortKeys.ATTEMPTS:
+                return c1.student.attempts < c2.student.attempts
+            elif data == SortKeys.POINTS:
+                return c1.student.total_points_final < c2.student.total_points_final
 
     print(f"Warning: Unknown list row comparison: {type(c1)} - {type(c2)}")
     return False

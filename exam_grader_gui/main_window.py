@@ -20,6 +20,7 @@ from .grading_table import (
     Student,
     Taskpoint,
     grading_row_sort_func,
+    SortKeys,
 )
 from .gui_helpers import (
     get_content,
@@ -71,6 +72,7 @@ class MainWindow:
             "on_save_clicked": self.save,
             "on_open_clicked": self.open,
             "on_new_clicked": self.clear,
+            "on_sort_key_changed": self.on_sort_key_changed,
         }
         self.builder.connect_signals(handlers)
 
@@ -95,6 +97,7 @@ class MainWindow:
         )
         self.passing_spin = self.builder.get_object("passing_spin_but")
         self.stepsize_spin = self.builder.get_object("stepsize_spin_but")
+        self.sort_key_combo = self.builder.get_object("sort_key_combo")
 
         self.modified = False
         self.block_histogram_update = False
@@ -105,7 +108,8 @@ class MainWindow:
 
         self.tasks: List[ExamTask] = []
 
-        self.grading_table.set_sort_func(grading_row_sort_func, None, False)
+        self.sort_key_combo.set_model(SortKeys.as_liststore())
+        self.sort_key_combo.set_active(SortKeys.ID)
         self.grading = GradeTable(
             self.tasks, self.point_table, self.grading_table, self.update_histogram
         )
@@ -216,6 +220,10 @@ class MainWindow:
         # Continue with closing procedure
         Gtk.main_quit(widget)
         return False
+
+    def on_sort_key_changed(self, widget):
+        key = SortKeys(widget.get_active())
+        self.grading_table.set_sort_func(grading_row_sort_func, key, False)
 
     def generate_task_plot(self, tasknr: int) -> Dict[str, Any]:
         task = self.tasks[tasknr]
