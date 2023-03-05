@@ -292,15 +292,14 @@
                                                 <property name="visible">True</property>
                                                 <property name="can-focus">False</property>
                                                 <property name="halign">start</property>
-                                                <property name="spacing">10</property>
                                                 <child>
                                                   <object class="GtkLabel">
-                                                    <property name="width-request">200</property>
+                                                    <property name="width-request">220</property>
                                                     <property name="visible">True</property>
                                                     <property name="can-focus">False</property>
-                                                    <property name="xpad">10</property>
+                                                    <property name="halign">center</property>
+                                                    <property name="valign">center</property>
                                                     <property name="label" translatable="yes">Task Name</property>
-                                                    <property name="xalign">0</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -310,16 +309,31 @@
                                                 </child>
                                                 <child>
                                                   <object class="GtkLabel">
-                                                    <property name="width-request">100</property>
+                                                    <property name="width-request">80</property>
                                                     <property name="visible">True</property>
                                                     <property name="can-focus">False</property>
                                                     <property name="halign">center</property>
+                                                    <property name="valign">center</property>
                                                     <property name="label" translatable="yes">Max Points</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkLabel">
+                                                    <property name="width-request">50</property>
+                                                    <property name="visible">True</property>
+                                                    <property name="can-focus">False</property>
+                                                    <property name="halign">center</property>
+                                                    <property name="valign">center</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="expand">False</property>
+                                                    <property name="fill">True</property>
+                                                    <property name="position">2</property>
                                                   </packing>
                                                 </child>
                                               </object>
