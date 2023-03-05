@@ -351,9 +351,18 @@ class MainWindow:
         points, grades = self.grading.point_and_grades_list()
         if len(points) > 0:
             grades_numeric = [float(g) for g in grades if g in self.point_table.labels]
-            grades_passed = list(
-                map(float, filter(lambda g: self.point_table.has_passed(g), grades))
+            gplist = list(
+                filter(
+                    lambda gp: self.point_table.has_passed(gp[0]), zip(grades, points)
+                )
             )
+            grades_passed = list(
+                map(lambda gp: float(gp[0]), gplist),
+            )
+            points_passed = list(
+                map(lambda gp: gp[1], gplist),
+            )
+
             passed_cnt = len(grades_passed)
             self.builder.get_object("passed_label").set_text(str(passed_cnt))
             perc_failed = 1 - passed_cnt / len(grades)
@@ -373,6 +382,12 @@ class MainWindow:
             )
             self.builder.get_object("points_median_label").set_text(
                 "{:.2f}".format(median(points))
+            )
+            self.builder.get_object("points_average_label").set_text(
+                "{:.1f}".format(mean(points))
+            )
+            self.builder.get_object("points_average_passed_label").set_text(
+                "{:.1f}".format(mean(points_passed))
             )
             self.builder.get_object("points_max_label").set_text(
                 "{:.2f}".format(max(points))
@@ -394,6 +409,8 @@ class MainWindow:
             )
             self.builder.get_object("avg_grade_label").set_text("0")
             self.builder.get_object("avg_grade_passed_label").set_text("0")
+            self.builder.get_object("points_average_label").set_text("0")
+            self.builder.get_object("points_average_passed_label").set_text("0")
             self.builder.get_object("grade_median_label").set_text("0")
             self.builder.get_object("points_median_label").set_text("0")
             self.builder.get_object("points_max_label").set_text("0")
