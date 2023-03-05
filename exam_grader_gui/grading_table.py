@@ -194,21 +194,15 @@ class GradeTable:
         del self.entries[pos]
         self.entry_changed_cb()
 
-
     def clear_rows(self):
         self.entries.clear()
         for child in self.listbox.get_children()[2:]:
             self.listbox.remove(child)
 
-    def add_csv_import_button(self, csv_button_callback: Callable):
-        csv_import_button = Gtk.Button()
-        csv_import_button.set_label("Import from CSV")
-        csv_import_button.connect("clicked", csv_button_callback)
-        csv_import_button.set_size_request(150, -1)
-        csv_import_button.set_halign(Gtk.Align.CENTER)
-        csv_import_button.get_style_context().add_class("suggested-action")
-        self.listbox.add(csv_import_button)
-        self.listbox.show_all()
+    def add_clicked(self, id: str, first_name: str, surname: str, attempts: int):
+        zero_points = [Taskpoint(task.id, 0.0) for task in self.tasks]
+        stud = Student(id, first_name, surname, attempts, zero_points)
+        self.add_student(stud)
 
     def update_after_add_task(self, new_task: ExamTask):
         """update student's tasks"""
@@ -307,6 +301,55 @@ class GradeTable:
         for stud, row in self.entries:
             tab.append(stud.as_list())
         return tab
+
+
+@Gtk.Template(
+    filename=str((Path(__file__) / "../glade/Add_Grading_Row.glade").resolve())
+)
+class AddGradingRow(Gtk.Box):
+    __gtype_name__ = "add_grading_row"
+    id_entry = Gtk.Template.Child("id_entry")
+    first_name_entry = Gtk.Template.Child("first_name_entry")
+    surname_entry = Gtk.Template.Child("surname_entry")
+    attempts_entry = Gtk.Template.Child("attempts_entry")
+    add_button = Gtk.Template.Child("add_button")
+
+    def __init__(self, grading: GradeTable):
+        super(Gtk.Box, self).__init__()
+        self.grading = grading
+
+    def clear(self):
+        self.id_entry.set_text("")
+        self.first_name_entry.set_text("")
+        self.surname_entry.set_text("")
+        self.attempts_entry.set_text("")
+
+    @Gtk.Template.Callback()
+    def on_entry_changed(self, widget):
+        def entry_unique(txt):
+            return txt not in map(lambda e: e[0].id, self.grading.entries)
+
+        self.id = get_content(self.id_entry, str, entry_unique)
+        self.first_name = get_content(self.first_name_entry, str)
+        self.surname = get_content(self.surname_entry, str)
+        self.attempts = get_content(self.attempts_entry, int)
+        correct_vals = (
+            self.id is not None
+            and self.first_name is not None
+            and self.surname is not None
+            and self.attempts is not None
+        )
+        self.add_button.set_sensitive(correct_vals)
+
+    @Gtk.Template.Callback()
+    def on_activate(self, widget):
+        if self.add_button.get_sensitive():
+            self.on_add_clicked(widget)
+
+    @Gtk.Template.Callback()
+    def on_add_clicked(self, widget):
+        self.grading.add_clicked(self.id, self.first_name, self.surname, self.attempts)
+        self.clear()
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
@@ -497,17 +540,10 @@ def grading_row_sort_func(row_1, row_2, data, notify_destroy):
     c1 = row_1.get_child()
     c2 = row_2.get_child()
 
-    if type(c1) == Gtk.Button:
-        return True
-    if type(c2) == Gtk.Button:
-        return False
-
     if type(c1) == Gtk.Separator:
         if type(c2) == Gtk.Box:
             return True
         if type(c2) == GradingRow:
-            return False
-        if type(c2) == Gtk.Button:
             return False
 
     if type(c1) == Gtk.Box:
@@ -518,8 +554,6 @@ def grading_row_sort_func(row_1, row_2, data, notify_destroy):
             return True
         if type(c2) == Gtk.Separator:
             return True
-        if type(c2) == Gtk.Button:
-            return False
         if type(c2) == GradingRow:
             return c1.id > c2.id
 

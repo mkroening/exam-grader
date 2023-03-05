@@ -16,6 +16,7 @@ from .exam import ExamTask, GradeState, GradeType, PointTable
 from .grading_table import (
     GradeTable,
     GradingRow,
+    AddGradingRow,
     Student,
     Taskpoint,
     grading_row_sort_func,
@@ -108,7 +109,7 @@ class MainWindow:
         self.grading = GradeTable(
             self.tasks, self.point_table, self.grading_table, self.update_histogram
         )
-        self.grading.add_csv_import_button(self.csv_import)
+        self.builder.get_object("grading_table_box").add(AddGradingRow(self.grading))
         self.add_task("Exampletask", 10, suppress_generations=True)
 
         mplfigure = Figure(figsize=(10, 2), dpi=100)
@@ -847,7 +848,6 @@ class MainWindow:
             if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
                 return
             self.set_buttons_sensitive(False)
-            self.grading_table.remove(self.grading_table.get_children()[-1])
             self.processing_revealer.set_reveal_child(True)
             exam = {}
             with filepath.open("r") as f:
@@ -942,7 +942,6 @@ class MainWindow:
         self.examdate = ""
         self.builder.get_object("examdate_button_label").set_text("<Select>")
         self.grading.clear_rows()
-        self.grading.add_csv_import_button(self.csv_import)
         self.clear_tasks()
 
         tmp = self.block_grade_table_update
