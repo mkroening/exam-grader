@@ -83,9 +83,13 @@ class MainWindow:
         self.grade_separators_checkbox = self.builder.get_object(
             "grade_separators_checkbox"
         )
+        self.passing_spin = self.builder.get_object("passing_spin_but")
+        self.stepsize_spin = self.builder.get_object("stepsize_spin_but")
 
         self.modified = False
         self.block_histogram_update = False
+        self.block_grade_table_update = False
+        self.histogram_changed = True
         self.max_points = 100
         self.point_table = PointTable(10, 5, self.max_points)
 
@@ -184,9 +188,7 @@ class MainWindow:
             width=0.4,
         )
 
-        self.ptshistogramax2.set_title("Exam Point Distributions")
-        self.ptshistogramax2.set_ylabel("Count")
-        self.ptshistogramax2.set_xlabel("Points")
+        self.recreate_pthistograms()
 
         self.ptshistogramax2.plot()
         self.ptscanvas2 = FigureCanvas(mplfigure_pts)
@@ -203,10 +205,11 @@ class MainWindow:
         self.grading_table.show_all()
         self.rebuild_gradingtable_header()
 
-        self.update_grade_table(None, False)
+        self.update_grade_table(None, False, redraw_histograms=False)
         self.modified = False
         self.examdate = ""
 
+        self.redraw_visible_graphs()
         self.window.show_all()
         self.processing_revealer.set_reveal_child(False)
 
@@ -253,6 +256,8 @@ class MainWindow:
         d["bar"] = bar
         d["ax"] = ax
         d["canvas"] = canvas
+        canvas.draw()
+        canvas.flush_events()
         return d
 
     def generate_task_plots(self):
@@ -299,7 +304,6 @@ class MainWindow:
         self.boxcanvas.draw()
         self.boxcanvas.flush_events()
 
-        self.update_histogram(None, was_modified=False, redraw=False)
         self.draw_big_histogram()
 
         if not rev_is_active:
@@ -308,17 +312,21 @@ class MainWindow:
         return False
 
     def main_visible_child_changed(self, widget, data=None):
+        GLib.timeout_add(500, self.redraw_visible_graphs)
+
+    def redraw_visible_graphs(self):
         if self.main_stack.get_visible_child_name() == "setup_page":
             self.draw_histogram()
+            self.draw_ptshistogram()
+            self.update_statistics()
         elif self.main_stack.get_visible_child_name() == "graphs_page":
-            GLib.timeout_add(500, self.update_task_plots)
+            self.update_task_plots()
 
     def draw_histogram(self):
-        if (
-            self.block_histogram_update
-            or self.main_stack.get_visible_child_name() != "setup_page"
-        ):
+        if self.main_stack.get_visible_child_name() != "setup_page":
             return
+        if self.histogram_changed:
+            self.recreate_pthistograms()
         for i, b in enumerate(self.histogrambars):
             b.set_height(self.histogram[self.point_table.labels[i]])
         self.histogramax.relim()
@@ -326,6 +334,9 @@ class MainWindow:
         self.canvas.draw()
         self.canvas.flush_events()
 
+    def draw_ptshistogram(self):
+        if self.main_stack.get_visible_child_name() != "setup_page":
+            return
         for i, b in enumerate(self.pthistogrambars):
             b.set_height(self.point_histogram[float(i / 2)])
         self.ptshistogramax.relim()
@@ -344,7 +355,6 @@ class MainWindow:
         self.ptshistogramax.autoscale_view()
         self.ptscanvas.draw()
         self.ptscanvas.flush_events()
-        self.update_statistics()
 
     def update_statistics(self, widget=None):
         points, grades = self.grading.point_and_grades_list()
@@ -419,8 +429,7 @@ class MainWindow:
         self.ptshistogramax2_box.set_ylim(bottom=0.0, top=1.0)
 
         for i, b in enumerate(self.pthistogrambars2):
-            # b.set_height(self.point_histogram.get(float(i/2), 0.0))
-            b.set_height(self.point_histogram[float(i / 2)])
+            b.set_height(self.point_histogram.get(float(i/2), 0.0))
 
         if self.grade_separators_checkbox.get_active():
             for x in self.point_table.points_min:
@@ -439,17 +448,12 @@ class MainWindow:
         self.ptscanvas2.flush_events()
 
     def on_gradetable_changed(self, widget):
-        GLib.idle_add(self.update_grade_table, None)
+        self.update_grade_table()
 
-    def update_grade_table(self, widget, was_modified: bool = True):
-        if was_modified:
-            self.modified = True
-        passing_spin = self.builder.get_object("passing_spin_but")
-        passing_pts = passing_spin.get_value()
-        stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
-        stepsize = stepsize_spin_but.get_value()
-        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
-        self.grading.point_table = self.point_table
+        GLib.timeout_add(200, self.recreate_pthistograms)
+
+    def recreate_pthistograms(self):
+        # Recreation of the pthistograms is necessary, because the amount of bars changes
         self.ptshistogramax.clear()
         self.ptshistogramax2.clear()
         self.ptshistogramax2.set_title("Exam Point Distributions")
@@ -471,6 +475,24 @@ class MainWindow:
             color=["tab:red"] * nr_fail_bars
             + ["tab:blue"] * (nr_point_bars - nr_fail_bars),
         )
+        self.histogram_changed = False
+
+    def update_grade_table(
+        self, widget=None, was_modified: bool = True, redraw_histograms: bool = True
+    ):
+        if self.block_grade_table_update:
+            return
+        if was_modified:
+            self.modified = True
+        passing_pts = self.passing_spin.get_value()
+        stepsize = self.stepsize_spin.get_value()
+        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+
+        tmp = self.block_histogram_update
+        self.block_histogram_update = True
+        self.grading.update_point_table(self.point_table)
+        self.block_histogram_update = tmp
+        self.update_histogram(None)
 
         for i, grade in enumerate(self.point_table.labels):
             label_from = self.builder.get_object(f"{grade}_from")
@@ -478,16 +500,14 @@ class MainWindow:
             label_to = self.builder.get_object(f"{grade}_to")
             label_to.set_text(f"{self.point_table.points_max[i]}")
 
-        tmp = self.block_histogram_update
-        self.block_histogram_update = True
-        self.grading.recalculate_grades()
-        self.block_histogram_update = tmp
-        self.update_histogram(None)
+        if redraw_histograms:
+            self.draw_histogram()
+            self.update_statistics()
         return False
 
-    def update_histogram(
-        self, widget=None, was_modified: bool = True, redraw: bool = True
-    ):
+    def update_histogram(self, widget=None, was_modified: bool = True):
+        if self.block_histogram_update:
+            return
         if was_modified:
             self.modified = True
         self.histogram = self.grading.grade_histogram()
@@ -496,8 +516,7 @@ class MainWindow:
             label_count = self.builder.get_object(f"{grade}_count")
             label_count.set_text(f"{self.histogram[grade]}")
         self.builder.get_object("point_table").show_all()
-        if redraw:
-            self.draw_histogram()
+        self.histogram_changed = True
 
     def on_about_clicked(self, _widget):
         self.help_menu_popover.popdown()
@@ -635,10 +654,13 @@ class MainWindow:
         self.task_list.show_all()
 
         self.max_points = sum(map(lambda t: t.max_points, self.tasks))
-        self.update_grade_table(None)
+        self.update_grade_table(None, redraw_histograms=False)
 
         self.grading.update_after_remove_task(id)
         self.update_histogram()
+        self.draw_histogram()
+        self.draw_ptshistogram()
+        self.update_statistics()
         self.rebuild_gradingtable_header()
 
         self.generate_task_plots()
@@ -839,7 +861,7 @@ class MainWindow:
         if response == Gtk.ResponseType.OK:
             filepath = Path(file_choose_dialog.get_filename())
             file_choose_dialog.destroy()
-            if not self.clear(None):
+            if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
                 return
             self.grading_table.remove(self.grading_table.get_children()[-1])
             self.processing_revealer.set_reveal_child(True)
@@ -865,13 +887,17 @@ class MainWindow:
                         t["Name"], t["Max_Points"], t["ID"], suppress_generations=True
                     )
 
-                self.builder.get_object("passing_spin_but").set_value(
+                tmp = self.block_grade_table_update
+                self.block_grade_table_update = True
+                self.passing_spin.set_value(
                     exam["PointTable"]["passing"]
                 )
-                self.builder.get_object("stepsize_spin_but").set_value(
+                self.stepsize_spin.set_value(
                     exam["PointTable"]["step"]
                 )
-                self.update_grade_table(None, False)
+                self.block_grade_table_update = tmp
+
+                self.update_grade_table(None, False, redraw_histograms=False)
                 self.rebuild_gradingtable_header()
 
                 for stud in exam["Grading"]:
@@ -880,7 +906,6 @@ class MainWindow:
                 self.block_histogram_update = tmp
                 self.update_histogram(None, False)
                 self.generate_task_plots()
-                self.update_task_plots()
 
             except (ValueError, TypeError):
                 error_dialog = Gtk.MessageDialog(
@@ -901,8 +926,11 @@ class MainWindow:
             self.processing_revealer.set_reveal_child(False)
         else:
             file_choose_dialog.destroy()
+        self.redraw_visible_graphs()
 
-    def clear(self, widget, force: bool = False) -> bool:
+    def clear(
+        self, widget, force: bool = False, regenerate_graphs_and_stat: bool = True
+    ) -> bool:
         """
         returns True, if the state was cleared
         """
@@ -931,14 +959,18 @@ class MainWindow:
         self.grading.add_csv_import_button(self.csv_import)
         self.clear_tasks()
 
-        self.builder.get_object("passing_spin_but").set_value(10.0)
-        self.builder.get_object("stepsize_spin_but").set_value(1.0)
+        tmp = self.block_grade_table_update
+        self.block_grade_table_update = True
+        self.passing_spin.set_value(10.0)
+        self.stepsize_spin.set_value(1.0)
+        self.block_grade_table_update = tmp
+
         self.max_points = 20.0
-        self.update_grade_table(None)
-        self.ptshistogramax.clear()
-        self.update_histogram(None, False)
-        self.generate_task_plots()
-        self.update_task_plots()
+        if regenerate_graphs_and_stat:
+            self.generate_task_plots()
+            self.recreate_pthistograms()
+            self.update_grade_table(None)
+            self.redraw_visible_graphs()
         self.modified = False
 
         return True

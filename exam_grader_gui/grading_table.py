@@ -215,8 +215,10 @@ class GradeTable:
             row.update_entries()
         # self.tasks.clear()
 
-    def recalculate_grades(self):
+    def update_point_table(self, pt: PointTable):
+        self.point_table = pt
         for stud, row in self.entries:
+            stud.grade_calculation = self.point_table.grade
             updated_grades = stud.recalculate_points_and_grade()
             row.set_points_from_update_vals(updated_grades)
             row.update_grade_style()
