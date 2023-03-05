@@ -176,10 +176,24 @@ class GradeTable:
     def add_student(self, stud: Student):
         stud.grade_calculation = self.point_table.grade
         row = GradingRow(
-            stud, self.tasks, self.grading_liststore, self.entry_changed_cb
+            stud,
+            self.tasks,
+            self.grading_liststore,
+            self.entry_changed_cb,
+            self.delete_row,
         )
         insort(self.entries, (stud, row))
         self.listbox.add(row)
+
+    def delete_row(self, widget, id: int):
+        for child in self.listbox.get_children()[2:]:
+            if child.get_child().id == id:
+                self.listbox.remove(child)
+                break
+        pos = next(i for i, e in enumerate(self.entries) if e[0].id == id)
+        del self.entries[pos]
+        self.entry_changed_cb()
+
 
     def clear_rows(self):
         self.entries.clear()
@@ -319,6 +333,7 @@ class GradingRow(Gtk.Box):
         tasks: List[ExamTask],
         examstates: Gtk.ListStore,
         row_changed_cb: Callable,
+        row_deleted_cb: Callable,
     ):
         super(Gtk.Box, self).__init__()
 
@@ -332,6 +347,8 @@ class GradingRow(Gtk.Box):
         self.trials_label.set_text(str(stud.attempts))
         if stud.attempts > 2:
             self.trials_label.get_style_context().add_class("warning")
+
+        self.delete_button.connect("clicked", row_deleted_cb, self.id)
 
         self.state_combo.set_model(examstates)
         self.state_combo.set_active(self.student.grade_type)

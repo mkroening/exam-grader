@@ -8,8 +8,9 @@
     <property name="icon-name">document-import-symbolic</property>
   </object>
   <object class="GtkImage" id="delete_image">
-    <property name="visible">True</property>
+    <property name="sensitive">False</property>
     <property name="can-focus">False</property>
+    <property name="no-show-all">True</property>
     <property name="icon-name">edit-delete-symbolic</property>
   </object>
   <object class="GtkPopover" id="examdate_select_popover">
@@ -1912,9 +1913,8 @@ Points</property>
                                     <child>
                                       <object class="GtkButton" id="delete_button">
                                         <property name="sensitive">False</property>
-                                        <property name="can-focus">True</property>
+                                        <property name="can-focus">False</property>
                                         <property name="receives-default">True</property>
-                                        <property name="image">delete_image</property>
                                         <property name="relief">none</property>
                                         <style>
                                           <class name="flat"/>
