@@ -1,6 +1,8 @@
-from gi.repository import Gtk
-from pathlib import Path
 import csv
+from pathlib import Path
+from typing import Optional
+
+from gi.repository import Gtk
 
 
 @Gtk.Template(
@@ -18,10 +20,12 @@ class CsvImportDialog(Gtk.Dialog):
     cancel_button = Gtk.Template.Child("cancel_button")
     import_button = Gtk.Template.Child("import_button")
 
-    def __init__(self, parent):
+    def __init__(self, parent, lastdir: Optional[str] = None):
         super(Gtk.Dialog, self).__init__()
         self.set_transient_for(parent)
         self.set_modal(parent)
+        if lastdir is not None:
+            self.csv_chooser.set_current_folder(lastdir)
 
     @Gtk.Template.Callback()
     def on_file_set(self, widget):

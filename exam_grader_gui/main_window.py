@@ -187,6 +187,7 @@ class MainWindow:
         self.update_grade_table(None, False, redraw_histograms=False)
         self.modified = False
         self.examdate = ""
+        self.lastpath = None
 
         self.redraw_visible_graphs()
         self.window.show_all()
@@ -541,6 +542,8 @@ class MainWindow:
         all_files_filter = Gtk.FileFilter()
         all_files_filter.set_name("All Files")
         all_files_filter.add_pattern("*")
+        if self.lastpath is not None:
+            file_choose_dialog.set_current_folder(self.lastpath)
         examname = self.examname_entry.get_text()
         file_choose_dialog.set_current_name(f"{examname}_results.csv")
 
@@ -551,6 +554,7 @@ class MainWindow:
         response = file_choose_dialog.run()
         if response == Gtk.ResponseType.OK:
             filepath = Path(file_choose_dialog.get_filename())
+            self.lastpath = str(filepath.parent)
             file_choose_dialog.destroy()
 
             if filepath.exists():
@@ -669,7 +673,7 @@ class MainWindow:
         self.task_label_box.show_all()
 
     def csv_import(self, widget):
-        dialog = CsvImportDialog(self.window)
+        dialog = CsvImportDialog(self.window, self.lastpath)
         resp = dialog.run()
         if resp == Gtk.ResponseType.OK:
             if self.modified:
@@ -694,6 +698,7 @@ class MainWindow:
 
             self.grading.clear_rows()
 
+            self.lastpath = str(dialog.csv.parent)
             with dialog.csv.open(newline="") as csv_f:
                 csv_f.seek(0)
                 reader = csv.DictReader(csv_f, dialect=dialog.csv_dialect)
@@ -764,6 +769,8 @@ class MainWindow:
         all_files_filter.set_name("All Files")
         all_files_filter.add_pattern("*")
         examname = self.examname_entry.get_text()
+        if self.lastpath is not None:
+            file_choose_dialog.set_current_folder(self.lastpath)
         file_choose_dialog.set_current_name(f"{examname}.examgrades")
 
         ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
@@ -796,6 +803,7 @@ class MainWindow:
                 warn_dialog.destroy()
                 if response != Gtk.ResponseType.OK:
                     return
+            self.lastpath = str(filepath.parent)
 
             save_content = {
                 "General": {"Name": examname, "Date": self.examdate},
@@ -844,6 +852,8 @@ class MainWindow:
         all_files_filter = Gtk.FileFilter()
         all_files_filter.set_name("All Files")
         all_files_filter.add_pattern("*")
+        if self.lastpath is not None:
+            file_choose_dialog.set_current_folder(self.lastpath)
 
         ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
         ok_butt.set_label("Open")
@@ -852,6 +862,7 @@ class MainWindow:
         response = file_choose_dialog.run()
         if response == Gtk.ResponseType.OK:
             filepath = Path(file_choose_dialog.get_filename())
+            self.lastpath = str(filepath.parent)
             file_choose_dialog.destroy()
             if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
                 return
@@ -881,12 +892,8 @@ class MainWindow:
 
                 tmp = self.block_grade_table_update
                 self.block_grade_table_update = True
-                self.passing_spin.set_value(
-                    exam["PointTable"]["passing"]
-                )
-                self.stepsize_spin.set_value(
-                    exam["PointTable"]["step"]
-                )
+                self.passing_spin.set_value(exam["PointTable"]["passing"])
+                self.stepsize_spin.set_value(exam["PointTable"]["step"])
                 self.block_grade_table_update = tmp
 
                 self.update_grade_table(None, False, redraw_histograms=False)
