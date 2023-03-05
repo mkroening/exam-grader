@@ -73,6 +73,9 @@ class MainWindow:
         self.task_list.add(AddTaskRow(self.add_task))
         self.export_button = self.builder.get_object("export_button")
         self.open_button = self.builder.get_object("open_button")
+        self.new_button = self.builder.get_object("new_button")
+        self.save_button = self.builder.get_object("save_button")
+        self.csv_import_button = self.builder.get_object("csv_import_button")
         self.grading_table = self.builder.get_object("grading_tabl")
         self.task_label_box = self.builder.get_object("task_label_box")
         self.histogram_area = self.builder.get_object("histogram_area")
@@ -212,6 +215,13 @@ class MainWindow:
         self.redraw_visible_graphs()
         self.window.show_all()
         self.processing_revealer.set_reveal_child(False)
+
+    def set_buttons_sensitive(self, sens: bool):
+        self.new_button.set_sensitive(sens)
+        self.open_button.set_sensitive(sens)
+        self.save_button.set_sensitive(sens)
+        self.csv_import_button.set_sensitive(sens)
+        self.export_button.set_sensitive(sens)
 
     def quit_with_confirmation(self, widget, data):
         if self.modified:
@@ -582,6 +592,7 @@ class MainWindow:
                     return
 
             with filepath.open("w", newline="") as f:
+                self.set_buttons_sensitive(False)
                 # TODO: Options:
                 # - Delimiter
                 # - float comma or dot
@@ -609,6 +620,7 @@ class MainWindow:
                     successful_with_open_folder_dialog(
                         self.window, "Export successful", filepath.parent
                     )
+                self.set_buttons_sensitive(True)
 
         file_choose_dialog.destroy()
 
@@ -863,6 +875,7 @@ class MainWindow:
             file_choose_dialog.destroy()
             if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
                 return
+            self.set_buttons_sensitive(False)
             self.grading_table.remove(self.grading_table.get_children()[-1])
             self.processing_revealer.set_reveal_child(True)
             exam = {}
@@ -927,6 +940,7 @@ class MainWindow:
         else:
             file_choose_dialog.destroy()
         self.redraw_visible_graphs()
+        self.set_buttons_sensitive(True)
 
     def clear(
         self, widget, force: bool = False, regenerate_graphs_and_stat: bool = True
@@ -952,6 +966,7 @@ class MainWindow:
             if response != Gtk.ResponseType.OK:
                 return False
 
+        self.set_buttons_sensitive(False)
         self.examname_entry.set_text("")
         self.examdate = ""
         self.builder.get_object("examdate_button_label").set_text("<Select>")
@@ -972,6 +987,7 @@ class MainWindow:
             self.update_grade_table(None)
             self.redraw_visible_graphs()
         self.modified = False
+        self.set_buttons_sensitive(True)
 
         return True
 
