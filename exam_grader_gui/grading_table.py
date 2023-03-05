@@ -488,3 +488,40 @@ class GradingRow(Gtk.Box):
         self.set_dim_entries(not (self.student.grade_type.is_counted()))
         self.update_grade_style()
         self.row_changed_cb()
+
+
+def grading_row_sort_func(row_1, row_2, data, notify_destroy):
+    # True: Swap
+    # False: Keep
+
+    c1 = row_1.get_child()
+    c2 = row_2.get_child()
+
+    if type(c1) == Gtk.Button:
+        return True
+    if type(c2) == Gtk.Button:
+        return False
+
+    if type(c1) == Gtk.Separator:
+        if type(c2) == Gtk.Box:
+            return True
+        if type(c2) == GradingRow:
+            return False
+        if type(c2) == Gtk.Button:
+            return False
+
+    if type(c1) == Gtk.Box:
+        return False
+
+    if type(c1) == GradingRow:
+        if type(c2) == Gtk.Box:
+            return True
+        if type(c2) == Gtk.Separator:
+            return True
+        if type(c2) == Gtk.Button:
+            return False
+        if type(c2) == GradingRow:
+            return c1.id > c2.id
+
+    print(f"Warning: Unknown list row comparison: {type(c1)} - {type(c2)}")
+    return False

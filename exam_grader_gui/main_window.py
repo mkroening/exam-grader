@@ -13,7 +13,13 @@ from matplotlib.ticker import MaxNLocator
 
 from .csv_import import CsvImportDialog
 from .exam import ExamTask, GradeState, GradeType, PointTable
-from .grading_table import GradeTable, GradingRow, Student, Taskpoint
+from .grading_table import (
+    GradeTable,
+    GradingRow,
+    Student,
+    Taskpoint,
+    grading_row_sort_func,
+)
 from .gui_helpers import (
     get_content,
     show_about_dialog,
@@ -98,42 +104,7 @@ class MainWindow:
 
         self.tasks: List[ExamTask] = []
 
-        def sort_func(row_1, row_2, data, notify_destroy):
-            # True: Swap
-            # False: Keep
-
-            c1 = row_1.get_child()
-            c2 = row_2.get_child()
-
-            if type(c1) == Gtk.Button:
-                return True
-            if type(c2) == Gtk.Button:
-                return False
-
-            if type(c1) == Gtk.Separator:
-                if type(c2) == Gtk.Box:
-                    return True
-                if type(c2) == GradingRow:
-                    return False
-                if type(c2) == Gtk.Button:
-                    return False
-
-            if type(c1) == Gtk.Box:
-                return False
-
-            if type(c1) == GradingRow:
-                if type(c2) == Gtk.Box:
-                    return True
-                if type(c2) == Gtk.Separator:
-                    return True
-                if type(c2) == Gtk.Button:
-                    return False
-                if type(c2) == GradingRow:
-                    return c1.id > c2.id
-
-            raise (RuntimeError("Invalid row entries"))
-
-        self.grading_table.set_sort_func(sort_func, None, False)
+        self.grading_table.set_sort_func(grading_row_sort_func, None, False)
         self.grading = GradeTable(
             self.tasks, self.point_table, self.grading_table, self.update_histogram
         )
