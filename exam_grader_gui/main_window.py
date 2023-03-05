@@ -131,7 +131,7 @@ class MainWindow:
                 if type(c2) == GradingRow:
                     return c1.id > c2.id
 
-            return row_1.data.lower() > row_2.data.lower()
+            raise (RuntimeError("Invalid row entries"))
 
         self.grading_table.set_sort_func(sort_func, None, False)
         self.grading = GradeTable(
