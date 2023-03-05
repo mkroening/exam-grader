@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+from bisect import insort
+from copy import copy
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from gi.repository import Gtk
 
-from .exam import ExamTask, GradeState, GradeType
+from .exam import ExamTask, GradeState, GradeType, PointTable
 from .gui_helpers import get_content
 
 
@@ -13,6 +18,279 @@ def round_half_points(f: float) -> float:
 
 def empty_cb(widget, data):
     return True
+
+
+@dataclass
+class Taskpoint:
+    task_id: int
+    points: float
+
+
+@dataclass
+class GradingUpdateVals:
+    points: float
+    points_final: float
+    grade: str
+    grade_final: str
+
+
+class Student:
+    grade: str
+    grade_final: str
+
+    def __init__(
+        self,
+        id: str,
+        first_name: str,
+        surname: str,
+        attempts: int,
+        points: List[Taskpoint],
+        grade_calculation: Optional[
+            Callable[[float, GradeType], Tuple[str, GradeState]]
+        ] = None,
+        additional_points: float = 0.0,
+        grade_type: GradeType = GradeType.NOTE,
+    ):
+        self.id = id
+        self.first_name = first_name
+        self.surname = surname
+        self.attempts = attempts
+        self.points: Dict[int, float] = {}
+        for p in points:
+            self.points[p.task_id] = p.points
+        self.grade_calculation = grade_calculation
+        self.grade_type = grade_type
+        self.additional_points = additional_points
+        self.state = GradeState.PASS
+        self.state_final = GradeState.PASS
+        self.grade = ""
+        self.grade_final = ""
+        self.recalculate_points_and_grade()
+
+    @classmethod
+    def from_dict(cls, d: Dict) -> Student:
+        points = []
+        for id, p in d["Tasks"].items():
+            try:
+                points.append(Taskpoint(int(id), p))
+            except ValueError:
+                # Additional_Points entry is in the items as well...
+                pass
+        return Student(
+            id=d["StudentID"],
+            first_name=d["First_Name"],
+            surname=d["Surname"],
+            attempts=d["Attempt"],
+            points=points,
+            additional_points=d["Tasks"]["Additional_Points"],
+            grade_type=GradeType.from_shortname(d.get("GradeState", "")),
+        )
+
+    def add_task(self, new_task: ExamTask):
+        self.points[new_task.id] = 0.0
+
+    def remove_task(self, task_id: int):
+        del self.points[task_id]
+        self.recalculate_points_and_grade()
+
+    def clear_tasks(self):
+        self.points.clear()
+
+    def recalculate_points_and_grade(self) -> GradingUpdateVals:
+        self.total_points = round_half_points(
+            sum(map(lambda p: p, self.points.values()))
+        )
+        self.total_points_final = round_half_points(
+            self.total_points + self.additional_points
+        )
+
+        if self.grade_calculation is not None:
+            self.grade, self.state = self.grade_calculation(
+                self.total_points, self.grade_type
+            )
+            self.grade_final, self.state_final = self.grade_calculation(
+                self.total_points_final, self.grade_type
+            )
+        return GradingUpdateVals(
+            self.total_points, self.total_points_final, self.grade, self.grade_final
+        )
+
+    def update_state(self, new_state):
+        self.state = new_state
+
+    def update_point(self, tp: Taskpoint) -> GradingUpdateVals:
+        """Updates the points of the given task. Taskid -1 is additional points"""
+        if tp.task_id == -1:
+            self.additional_points = tp.points
+        else:
+            self.points[tp.task_id] = tp.points
+        return self.recalculate_points_and_grade()
+
+    def as_dict(self) -> Dict[str, Any]:
+        taskpts: Dict[str, float] = {}
+        for id, p in self.points.items():
+            taskpts[str(id)] = p
+        taskpts["Additional_Points"] = self.additional_points
+        d = {
+            "StudentID": self.id,
+            "First_Name": self.first_name,
+            "Surname": self.surname,
+            "Attempt": self.attempts,
+            "GradeState": self.grade_type.shortname(),
+            "Tasks": taskpts,
+        }
+        return d
+
+    def as_list(self) -> List[str]:
+        l = [self.id, self.first_name, self.surname, str(self.attempts)]
+        l += list(map(str, self.points.values()))
+        l += [str(self.additional_points)]
+        l += [
+            str(self.total_points),
+            str(self.total_points_final),
+            self.grade,
+            self.grade_final,
+        ]
+        return l
+
+    def __lt__(self, other: Student):
+        return self.id < other.id
+
+
+class GradeTable:
+    def __init__(
+        self,
+        tasks: List[ExamTask],
+        point_table: PointTable,
+        listbox: Gtk.ListBox,
+        entry_changed_cb: Callable,
+    ):
+        """tasks and point_table are references to existing data and it is relied on them to persist/update during the lifetime of this object"""
+        self.tasks = tasks
+        self.entries: List[Tuple[Student, GradingRow]] = []
+        self.point_table = point_table
+        self.listbox = listbox
+        self.grading_liststore = GradeType.as_liststore()
+        self.entry_changed_cb = entry_changed_cb
+
+    def add_student(self, stud: Student):
+        stud.grade_calculation = self.point_table.grade
+        row = GradingRow(
+            stud, self.tasks, self.grading_liststore, self.entry_changed_cb
+        )
+        insort(self.entries, (stud, row))
+        self.listbox.add(row)
+
+    def clear_rows(self):
+        self.entries.clear()
+        for child in self.listbox.get_children()[2:]:
+            self.listbox.remove(child)
+
+    def add_csv_import_button(self, csv_button_callback: Callable):
+        csv_import_button = Gtk.Button()
+        csv_import_button.set_label("Import from CSV")
+        csv_import_button.connect("clicked", csv_button_callback)
+        csv_import_button.set_size_request(150, -1)
+        csv_import_button.set_halign(Gtk.Align.CENTER)
+        csv_import_button.get_style_context().add_class("suggested-action")
+        self.listbox.add(csv_import_button)
+        self.listbox.show_all()
+
+    def update_after_add_task(self, new_task: ExamTask):
+        """update student's tasks"""
+        # self.tasks.append(new_task)
+        for stud, row in self.entries:
+            stud.add_task(new_task)
+            row.update_entries()
+
+    def update_after_remove_task(self, task_id: int):
+        # self.tasks.remove(self.tasks[task_id])
+        for stud, row in self.entries:
+            stud.remove_task(task_id)
+            row.update_entries()
+
+    def update_after_clear_tasks(self):
+        for stud, row in self.entries:
+            stud.clear_tasks()
+            row.update_entries()
+        # self.tasks.clear()
+
+    def recalculate_grades(self):
+        for stud, row in self.entries:
+            updated_grades = stud.recalculate_points_and_grade()
+            row.set_points_from_update_vals(updated_grades)
+            row.update_grade_style()
+
+    def grade_histogram(self) -> Dict[str, int]:
+        hist = {}
+        for label in self.point_table.all_labels:
+            hist[label] = 0
+        for stud, row in self.entries:
+            # try:
+            hist[stud.grade_final] += 1
+            # except KeyError:
+            #     pass
+        return hist
+
+    def point_histogram(self, point_step: float = 0.5) -> Dict[float, int]:
+        hist = {}
+        for label in range(int(self.point_table.points_maximum / point_step + 1.0)):
+            hist[float(label / (1 / point_step))] = 0
+        for stud, row in self.entries:
+            if stud.grade_type.is_counted():
+                try:
+                    hist[stud.total_points_final] += 1
+                except KeyError:
+                    pass
+        return hist
+
+    def task_histogram_and_points(
+        self, task_id: int, point_step: float = 0.25
+    ) -> Tuple[Dict[float, int], List[float]]:
+        hist = {}
+        pts = []
+        task = next(t for t in self.tasks if t.id == task_id)
+        for label in range(int(task.max_points / point_step + 1.0)):
+            hist[float(label / (1 / point_step))] = 0
+        for stud, row in self.entries:
+            if stud.grade_type.is_counted():
+                pts.append(stud.points[task_id])
+                hist[stud.points[task_id]] += 1
+        return hist, pts
+
+    def point_and_grades_list(self) -> Tuple[List[float], List[str]]:
+        """Returns a list of all grades and points of exams that are counted for statistic reasons"""
+        points = []
+        grades = []
+        for stud, row in self.entries:
+            if stud.grade_type.is_counted():
+                grades.append(stud.grade_final)
+                points.append(stud.total_points_final)
+
+        return (points, grades)
+
+    def export(self) -> List[Dict[str, Any]]:
+        exp = []
+        for stud, row in self.entries:
+            exp.append(stud.as_dict())
+        return exp
+
+    def as_table(self) -> List[List[str]]:
+        tab = []
+        header = ["STUDENT_ID", "FIRST_NAME", "FAMILY_NAME", "ATTEMPTS"]
+        for t in self.tasks:
+            header += [t.name.upper()]
+        header += [
+            "ADDITIONAL_POINTS",
+            "TOTAL_POINTS",
+            "TOTAL_POINTS_FINAL",
+            "GRADE",
+            "GRADE_FINAL",
+        ]
+        tab.append(header)
+        for stud, row in self.entries:
+            tab.append(stud.as_list())
+        return tab
 
 
 @Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
@@ -35,148 +313,99 @@ class GradingRow(Gtk.Box):
 
     def __init__(
         self,
-        student_id: str,
-        first_name: str,
-        surname: str,
-        trials: int,
-        tasks: [ExamTask],
-        grade_calculation: Callable[
-            ["MainWindow", float, GradeType], Tuple[str, GradeState]
-        ],
-        update_callback: Callable[["MainWindow"], None],
-        grade_type: GradeType = GradeType.NOTE,
-        points: Optional[List[float]] = None,
-        examstates: Gtk.ListStore = None,
+        stud: Student,
+        tasks: List[ExamTask],
+        examstates: Gtk.ListStore,
+        row_changed_cb: Callable,
     ):
         super(Gtk.Box, self).__init__()
 
-        self.stud_id = student_id
-        self.student_id_label.set_text(student_id)
-        self.first_name = first_name
-        self.first_name_label.set_text(self.first_name)
-        self.surname = surname
-        self.surname_label.set_text(self.surname)
-        self.grade_calculation = grade_calculation
-        self.update_callback = update_callback
-
-        self.trials = trials
-        self.trials_label.set_text(str(self.trials))
-        if trials > 2:
+        self.id = stud.id
+        self.student = stud
+        self.tasks = tasks
+        self.row_changed_cb = row_changed_cb
+        self.student_id_label.set_text(stud.id)
+        self.first_name_label.set_text(stud.first_name)
+        self.surname_label.set_text(stud.surname)
+        self.trials_label.set_text(str(stud.attempts))
+        if stud.attempts > 2:
             self.trials_label.get_style_context().add_class("warning")
 
-        if examstates is not None:
-            self.state_combo.set_model(examstates)
-        self.grade_type = grade_type
-        self.state_combo.set_active(grade_type)
-        self.state_combo.connect("changed", self.on_update)
+        self.state_combo.set_model(examstates)
+        self.state_combo.set_active(self.student.grade_type)
+
+        self.state_combo.connect("changed", self.on_combo_change)
         # Disable the Mouse scroll, to avoid unintentional changes
         self.state_combo.connect("scroll_event", empty_cb)
 
         self.point_entries = {}
 
-        self.additional_points_entry.connect("changed", self.on_update)
-        if points is not None:
-            self.additional_points_entry.set_text(str(points[-1]))
+        self.additional_points_entry.connect("changed", self.on_entry_update, -1)
+        self.additional_points_entry.set_text(str(stud.additional_points))
 
-        self.points = 0.0
-        self.points_final = 0.0
-        self.grade = "5.0"
-        self.grade_final = "5.0"
-
-        if points is not None:
-            assert len(points) == len(tasks) + 1
-
-        for i, t in enumerate(tasks):
-            taskpoint_entry = self.new_entry()
-            if points is not None:
-                taskpoint_entry.set_text(str(points[i]))
-                taskpoint_entry.set_progress_fraction(points[i] / tasks[i].max_points)
-            self.point_entries[i] = (t, taskpoint_entry)
+        for t in self.tasks:
+            points = stud.points[t.id]
+            taskpoint_entry = self.new_entry(t.id, points, t.max_points)
+            self.point_entries[t.id] = taskpoint_entry
             self.task_point_area.add(taskpoint_entry)
+
+        self.set_dim_entries(not (self.student.grade_type.is_counted()))
         self.task_point_area.show_all()
 
-    def new_entry(self) -> Gtk.Entry:
+    def new_entry(self, taskid: int, points: float, max_points: float) -> Gtk.Entry:
         taskpoint_entry = Gtk.Entry()
         taskpoint_entry.set_size_request(90, -1)
         taskpoint_entry.set_placeholder_text("0.0")
         taskpoint_entry.set_alignment(0.5)
         taskpoint_entry.set_width_chars(3)
-        taskpoint_entry.connect("changed", self.on_update)
+        taskpoint_entry.set_text(str(points))
+        taskpoint_entry.connect("changed", self.on_entry_update, taskid)
         taskpoint_entry.get_style_context().add_class("flat")
+        taskpoint_entry.set_progress_fraction(points / max_points)
         return taskpoint_entry
 
-    def update_entries(self, new_tasklist: List[ExamTask]):
-        for child in self.task_point_area.get_children():
-            self.task_point_area.remove(child)
-        tmp_point_entries = self.point_entries
-        self.point_entries = {}
-        for i in range(len(new_tasklist)):
-            old_item = list(
-                filter(
-                    lambda t: t[1][0].id == new_tasklist[i].id,
-                    tmp_point_entries.items(),
-                )
-            )
-            assert len(old_item) <= 1
-            if len(old_item) == 0:
-                self.point_entries[i] = (new_tasklist[i], self.new_entry())
-            else:
-                self.point_entries[i] = old_item[0][1]
-        for e in self.point_entries.items():
-            self.task_point_area.add(e[1][1])
-        self.show_all()
-        self.on_update(None)
+    def update_entries(self):
+        """Update the row, after the tasks and the student are already updated"""
+        # remove not anymore existing tasks
+        remove_vals = []
+        for t_id in self.point_entries.keys():
+            try:
+                next(t for t in self.tasks if t.id == t_id)
+            except StopIteration:
+                remove_vals.append(t_id)
+        for v in remove_vals:
+            self.task_point_area.remove(self.point_entries[v])
+            del self.point_entries[v]
 
-    def on_update(self, widget):
-        sum = 0.0
-        for entry in self.point_entries.items():
+        # add not yet existing tasks
+        for i, t in enumerate(self.tasks):
+            if self.point_entries.get(t.id) is None:
+                new_e = self.new_entry(t.id, self.student.points[t.id], t.max_points)
+                self.point_entries[t.id] = new_e
+                self.task_point_area.add(new_e)
 
-            def validate_maxpoints(points):
-                return points <= entry[1][0].max_points
+        new_vals = self.student.recalculate_points_and_grade()
+        self.set_points_from_update_vals(new_vals)
 
-            p = get_content(entry[1][1], float, validate_maxpoints)
-            if p is not None:
-                entry[1][1].set_progress_fraction(p / entry[1][0].max_points)
-                sum += p
-        self.points = round_half_points(sum)
-        self.total_points_label.set_text(str(self.points))
+    def set_point_labels(
+        self,
+        total_points: float,
+        total_points_final: float,
+        grade: str,
+        grade_final: str,
+    ):
+        self.total_points_label.set_text(str(total_points))
+        self.total_points_final_label.set_text(str(total_points_final))
+        self.grade_label.set_text(str(grade))
+        self.grade_final_label.set_text(str(grade_final))
 
-        active = self.state_combo.get_active()
-        if active == -1:
-            print("-1 active")
-            active = 0
-        self.grade_type = GradeType(active)
-        self.set_dim_entries(
-            not (
-                self.grade_type == GradeType.NOTE
-                or self.grade_type == GradeType.BESTANDEN
-            )
+    def set_points_from_update_vals(self, update_vals=GradingUpdateVals):
+        self.set_point_labels(
+            update_vals.points,
+            update_vals.points_final,
+            update_vals.grade,
+            update_vals.grade_final,
         )
-        self.grade, state = self.grade_calculation(sum, self.grade_type)
-        self.grade_label.set_text(self.grade)
-        if state == GradeState.FAIL:
-            self.grade_label.get_style_context().add_class("error")
-        else:
-            self.grade_label.get_style_context().remove_class("error")
-
-        ap = get_content(self.additional_points_entry, float)
-        if ap is not None:
-            sum += ap
-        self.points_final = round_half_points(sum)
-        self.total_points_final_label.set_text(str(self.points_final))
-
-        self.grade_final, state = self.grade_calculation(sum, self.grade_type)
-        if state == GradeState.FAIL:
-            self.grade_final_label.get_style_context().add_class("error")
-            if self.trials > 2:
-                self.first_name_label.get_style_context().add_class("error")
-                self.surname_label.get_style_context().add_class("error")
-        else:
-            self.grade_final_label.get_style_context().remove_class("error")
-            self.first_name_label.get_style_context().remove_class("error")
-            self.surname_label.get_style_context().remove_class("error")
-        self.grade_final_label.set_text(self.grade_final)
-        self.update_callback(self)
 
     def set_dim_entries(self, dim: bool):
         self.student_id_label.set_sensitive(not dim)
@@ -187,40 +416,56 @@ class GradingRow(Gtk.Box):
         self.total_points_final_label.set_sensitive(not dim)
         self.grade_label.set_sensitive(not dim)
         self.grade_final_label.set_sensitive(not dim)
-        for entry in self.point_entries.items():
-            entry[1][1].set_sensitive(not dim)
+        for entry in self.point_entries.values():
+            entry.set_sensitive(not dim)
+        self.additional_points_entry.set_sensitive(not dim)
 
-    def as_dict(self) -> Dict[str, Any]:
-        d = {
-            "StudentID": self.student_id_label.get_text(),
-            "First_Name": self.first_name_label.get_text(),
-            "Surname": self.surname_label.get_text(),
-            "Attempt": self.trials,
-            "GradeState": GradeType(self.state_combo.get_active()).shortname(),
-        }
-        taskpts = {}
-        for entry in self.point_entries.items():
-            try:
-                taskpts[str(entry[1][0].id)] = float(entry[1][1].get_text())
-            except ValueError:
-                taskpts[str(entry[1][0].id)] = 0.0
-        try:
-            taskpts["Additional_Points"] = float(
-                self.additional_points_entry.get_text()
-            )
-        except ValueError:
-            taskpts["Additional_Points"] = 0.0
-        d["Tasks"] = taskpts
-        return d
+    def update_grade_style(self):
+        if self.student.state == GradeState.FAIL:
+            self.grade_label.get_style_context().add_class("error")
+        else:
+            self.grade_label.get_style_context().remove_class("error")
+        if self.student.state_final == GradeState.FAIL:
+            self.grade_final_label.get_style_context().add_class("error")
+            if self.student.attempts > 2:
+                self.first_name_label.get_style_context().add_class("error")
+                self.surname_label.get_style_context().add_class("error")
+        else:
+            self.grade_final_label.get_style_context().remove_class("error")
+            self.first_name_label.get_style_context().remove_class("error")
+            self.surname_label.get_style_context().remove_class("error")
 
-    def get_task_points(self, tasknr: int) -> float:
-        try:
-            return float(self.point_entries[tasknr][1].get_text())
-        except ValueError:
-            return 0.0
+    def on_entry_update(self, widget, task_id: int):
+        p = None
 
-    def get_additional_points(self) -> float:
-        try:
-            return float(self.additional_points_entry.get_text())
-        except ValueError:
-            return 0.0
+        if task_id == -1:
+            # Additional Point entry
+            entry = self.additional_points_entry
+            p = get_content(entry, float, default_val=0.0)
+        else:
+            entry = self.point_entries[task_id]
+            task = next(t for t in self.tasks if t.id == task_id)
+
+            def validate_maxpoints(points):
+                return points <= task.max_points
+
+            p = get_content(entry, float, validate_maxpoints, default_val=0.0)
+            if p is not None:
+                entry.set_progress_fraction(p / task.max_points)
+
+        new_vals = self.student.update_point(Taskpoint(task_id, p))
+        self.set_points_from_update_vals(new_vals)
+        self.update_grade_style()
+        self.row_changed_cb()
+
+    def on_combo_change(self, widget):
+        active = self.state_combo.get_active()
+        if active == -1:
+            print("-1 active")
+            active = 0
+        self.student.grade_type = GradeType(active)
+        new_vals = self.student.recalculate_points_and_grade()
+        self.set_points_from_update_vals(new_vals)
+        self.set_dim_entries(not (self.student.grade_type.is_counted()))
+        self.update_grade_style()
+        self.row_changed_cb()

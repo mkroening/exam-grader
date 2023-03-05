@@ -39,6 +39,9 @@ class GradeType(IntEnum):
     def shortname(self) -> str:
         return GradeType.shortnames()[self]
 
+    def is_counted(self) -> bool:
+        return self == GradeType.NOTE or self == GradeType.BESTANDEN
+
     @classmethod
     def from_shortname(cls, name) -> GradeType:
         for i, n in enumerate(cls.shortnames()):
@@ -122,6 +125,9 @@ class PointTable:
             return (self.labels[-1], GradeState.PASS)
         else:
             return (type.shortname(), GradeState.OTHER)
+
+    def has_passed(self, grade: str) -> bool:
+        return grade in self.labels[1:]
 
     def as_dict(self) -> Dict[str, float]:
         return {

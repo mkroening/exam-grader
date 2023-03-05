@@ -9,7 +9,12 @@ from pathlib import Path
 from gi.repository import Gdk, Gtk
 
 
-def get_content(entry, target_type, testfn: Optional[Callable[[Any], bool]] = None):
+def get_content(
+    entry,
+    target_type,
+    testfn: Optional[Callable[[Any], bool]] = None,
+    default_val: Any = None,
+):
     """
     Helper fn that queries an gtk entry and colors the entry box upon invalid content
     Returns the content cast into `desired_type`
@@ -19,7 +24,7 @@ def get_content(entry, target_type, testfn: Optional[Callable[[Any], bool]] = No
     entry.set_name("failable_entry")
     if text == "":
         entry.get_style_context().remove_class("red")
-        return None
+        return default_val
     try:
         ret = target_type(text)
         if testfn is not None:
@@ -30,7 +35,7 @@ def get_content(entry, target_type, testfn: Optional[Callable[[Any], bool]] = No
     except ValueError:
         # print("Invalid entry: " + text)
         entry.get_style_context().add_class("red")
-        return None
+        return default_val
 
 
 def get_content_list(entry, target_type):

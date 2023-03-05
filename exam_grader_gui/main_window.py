@@ -13,7 +13,7 @@ from matplotlib.ticker import MaxNLocator
 
 from .csv_import import CsvImportDialog
 from .exam import ExamTask, GradeState, GradeType, PointTable
-from .grading_table import GradingRow
+from .grading_table import GradeTable, GradingRow, Student, Taskpoint
 from .gui_helpers import (
     get_content,
     show_about_dialog,
@@ -89,6 +89,50 @@ class MainWindow:
         self.max_points = 100
         self.point_table = PointTable(10, 5, self.max_points)
 
+        self.tasks: List[ExamTask] = []
+
+        def sort_func(row_1, row_2, data, notify_destroy):
+            # True: Swap
+            # False: Keep
+
+            c1 = row_1.get_child()
+            c2 = row_2.get_child()
+
+            if type(c1) == Gtk.Button:
+                return True
+            if type(c2) == Gtk.Button:
+                return False
+
+            if type(c1) == Gtk.Separator:
+                if type(c2) == Gtk.Box:
+                    return True
+                if type(c2) == GradingRow:
+                    return False
+                if type(c2) == Gtk.Button:
+                    return False
+
+            if type(c1) == Gtk.Box:
+                return False
+
+            if type(c1) == GradingRow:
+                if type(c2) == Gtk.Box:
+                    return True
+                if type(c2) == Gtk.Separator:
+                    return True
+                if type(c2) == Gtk.Button:
+                    return False
+                if type(c2) == GradingRow:
+                    return c1.id > c2.id
+
+            return row_1.data.lower() > row_2.data.lower()
+
+        self.grading_table.set_sort_func(sort_func, None, False)
+        self.grading = GradeTable(
+            self.tasks, self.point_table, self.grading_table, self.update_histogram
+        )
+        self.grading.add_csv_import_button(self.csv_import)
+        self.add_task("Exampletask", 10, suppress_generations=True)
+
         mplfigure = Figure(figsize=(10, 2), dpi=100)
         self.histogramax = mplfigure.add_subplot(111)
         self.histogrambars = self.histogramax.bar(
@@ -152,19 +196,16 @@ class MainWindow:
 
         self.taskplots = {}
 
-        self.grading_rows = []
         self.update_histogram(None, False)
 
-        self.tasks: List[ExamTask] = []
-        self.add_task("Exampletask", 10, suppress_generations=True)
         self.generate_task_plots()
 
-        self.clear_grading_rows(True)
         self.grading_table.show_all()
         self.rebuild_gradingtable_header()
 
         self.update_grade_table(None, False)
         self.modified = False
+        self.examdate = ""
 
         self.window.show_all()
         self.processing_revealer.set_reveal_child(False)
@@ -233,7 +274,7 @@ class MainWindow:
         tasknames = []
         taskpts = []
         for tn, p in self.taskplots.items():
-            th, tp = self.task_histogram(tn)
+            th, tp = self.grading.task_histogram_and_points(self.tasks[tn].id)
             taskpts.append(tp)
             for i, b in enumerate(p["bar"]):
                 b.set_height(th[float(i) / 2.0])
@@ -265,24 +306,6 @@ class MainWindow:
             self.processing_revealer.set_reveal_child(False)
 
         return False
-
-    def task_histogram(self, tasknr: int) -> Tuple[Dict[float, int], List[float]]:
-        hist = {}
-        pts = []
-        t = self.tasks[tasknr]
-        for label in range(int(t.max_points * 1 / 0.5 + 1.0)):
-            hist[float(label / 2.0)] = 0
-        for row in self.grading_rows:
-            try:
-                if (
-                    row.grade_type == GradeType.NOTE
-                    or row.grade_type == GradeType.BESTANDEN
-                ):
-                    pts.append(row.get_task_points(tasknr))
-                    hist[row.get_task_points(tasknr)] += 1
-            except KeyError:
-                pass
-        return hist, pts
 
     def main_visible_child_changed(self, widget, data=None):
         if self.main_stack.get_visible_child_name() == "setup_page":
@@ -324,10 +347,15 @@ class MainWindow:
         self.update_statistics()
 
     def update_statistics(self, widget=None):
-        if len(self.grading_rows) > 0:
-            passed_cnt = len(self.grading_rows) - self.histogram["5.0"]
+        points, grades = self.grading.point_and_grades_list()
+        if len(points) > 0:
+            grades_numeric = [float(g) for g in grades if g in self.point_table.labels]
+            grades_passed = list(
+                map(float, filter(lambda g: self.point_table.has_passed(g), grades))
+            )
+            passed_cnt = len(grades_passed)
             self.builder.get_object("passed_label").set_text(str(passed_cnt))
-            perc_failed = self.histogram["5.0"] / len(self.grading_rows)
+            perc_failed = 1 - passed_cnt / len(grades)
             perc_fail_label = self.builder.get_object("perc_fail_label")
             if perc_failed > 0.5:
                 perc_fail_label.get_style_context().add_class("error")
@@ -335,24 +363,12 @@ class MainWindow:
                 perc_fail_label.get_style_context().remove_class("error")
             perc_fail_label.set_text(f"{perc_failed * 100.0:.2f}%")
 
-            points = []
-            grades = []
-            for r in self.grading_rows:
-                try:
-                    points.append(float(r.points_final))
-                except ValueError:
-                    pass
-                try:
-                    grades.append(float(r.grade_final))
-                except ValueError:
-                    pass
-
             self.builder.get_object("participants_label").set_text(str(len(grades)))
             self.builder.get_object("avg_grade_label").set_text(
-                "{:.2f}".format(mean(grades))
+                "{:.2f}".format(mean(grades_numeric))
             )
             self.builder.get_object("grade_median_label").set_text(
-                "{:.2f}".format(median(grades))
+                "{:.2f}".format(median(grades_numeric))
             )
             self.builder.get_object("points_median_label").set_text(
                 "{:.2f}".format(median(points))
@@ -362,9 +378,6 @@ class MainWindow:
             )
             self.builder.get_object("best_grade_label").set_text(str(min(grades)))
 
-            grades_passed = list(
-                filter(lambda g: g <= 4.0, grades),
-            )
             if len(grades_passed) > 0:
                 self.builder.get_object("avg_grade_passed_label").set_text(
                     "{:.2f}".format(mean(grades_passed))
@@ -436,6 +449,7 @@ class MainWindow:
         stepsize_spin_but = self.builder.get_object("stepsize_spin_but")
         stepsize = stepsize_spin_but.get_value()
         self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+        self.grading.point_table = self.point_table
         self.ptshistogramax.clear()
         self.ptshistogramax2.clear()
         self.ptshistogramax2.set_title("Exam Point Distributions")
@@ -466,54 +480,24 @@ class MainWindow:
 
         tmp = self.block_histogram_update
         self.block_histogram_update = True
-        for row in self.grading_rows:
-            row.update_entries(self.tasks)
+        self.grading.recalculate_grades()
         self.block_histogram_update = tmp
         self.update_histogram(None)
         return False
 
-    def update_histogram(self, widget, was_modified: bool = True, redraw: bool = True):
+    def update_histogram(
+        self, widget=None, was_modified: bool = True, redraw: bool = True
+    ):
         if was_modified:
             self.modified = True
-        self.histogram = self.generate_histogram()
-        self.point_histogram = self.generate_point_histogram()
+        self.histogram = self.grading.grade_histogram()
+        self.point_histogram = self.grading.point_histogram()
         for grade in self.point_table.labels:
             label_count = self.builder.get_object(f"{grade}_count")
             label_count.set_text(f"{self.histogram[grade]}")
         self.builder.get_object("point_table").show_all()
         if redraw:
             self.draw_histogram()
-
-    def generate_histogram(self) -> Dict[str, int]:
-        hist = {}
-        for label in self.point_table.all_labels:
-            hist[label] = 0
-        for row in self.grading_rows:
-            try:
-                hist[row.grade_final] += 1
-            except KeyError:
-                pass
-        return hist
-
-    def generate_point_histogram(self) -> Dict[float, int]:
-        hist = {}
-        for label in range(int(self.point_table.points_maximum * 1 / 0.5 + 1.0)):
-            hist[float(label / 2.0)] = 0
-        for row in self.grading_rows:
-            try:
-                if (
-                    row.grade_type == GradeType.NOTE
-                    or row.grade_type == GradeType.BESTANDEN
-                ):
-                    hist[row.points_final] += 1
-            except KeyError:
-                pass
-        return hist
-
-    def grade_calculation(
-        self, points: float, type: GradeType
-    ) -> Tuple[str, GradeState]:
-        return self.point_table.grade(points, type)
 
     def on_about_clicked(self, _widget):
         self.help_menu_popover.popdown()
@@ -584,27 +568,11 @@ class MainWindow:
                 # - float comma or dot
                 # - trailing separator
                 writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_MINIMAL)
-                header = ["STUDENT_ID", "FIRST_NAME", "FAMILY_NAME", "ATTEMPTS"]
-                for t in self.tasks:
-                    header += [t.name.upper()]
-                header += [
-                    "ADDITIONAL_POINTS",
-                    "TOTAL_POINTS",
-                    "TOTAL_POINTS_FINAL",
-                    "GRADE",
-                    "GRADE_FINAL",
-                ]
-                writer.writerow(header)
 
                 try:
-                    for row in self.grading_rows:
-                        row.on_update(None)
-                        r = [row.stud_id, row.first_name, row.surname, row.trials]
-                        for i, t in enumerate(self.tasks):
-                            r += [row.get_task_points(i)]
-                        r += [row.get_additional_points()]
-                        r += [row.points, row.points_final, row.grade, row.grade_final]
-                        writer.writerow(r)
+                    tab = self.grading.as_table()
+                    for line in tab:
+                        writer.writerow(line)
                 except KeyError:
                     dialog = Gtk.MessageDialog(
                         self.window,
@@ -635,7 +603,8 @@ class MainWindow:
         self.modified = True
         if id is None:
             id = random.randint(1, 1000000000000)
-        self.tasks.append(ExamTask(name, points, id))
+        new_task = ExamTask(name, points, id)
+        self.tasks.append(new_task)
         self.task_list.remove(self.task_list.get_children()[-1])
         self.task_list.add(TaskRow(id, name, points, self.remove_task))
         self.task_list.add(AddTaskRow(self.add_task))
@@ -645,8 +614,7 @@ class MainWindow:
 
         tmp = self.block_histogram_update
         self.block_histogram_update = True
-        for row in self.grading_rows:
-            row.update_entries(self.tasks)
+        self.grading.update_after_add_task(new_task)
         self.block_histogram_update = tmp
         if not suppress_generations:
             self.update_grade_table(None)
@@ -669,10 +637,10 @@ class MainWindow:
         self.max_points = sum(map(lambda t: t.max_points, self.tasks))
         self.update_grade_table(None)
 
-        for row in self.grading_rows:
-            row.update_entries(self.tasks)
-        # self.grading_table.show_all()
+        self.grading.update_after_remove_task(id)
+        self.update_histogram()
         self.rebuild_gradingtable_header()
+
         self.generate_task_plots()
 
     def rebuild_gradingtable_header(self):
@@ -710,7 +678,7 @@ class MainWindow:
                     dialog.destroy()
                     return
 
-            self.clear_grading_rows()
+            self.grading.clear_rows()
 
             with dialog.csv.open(newline="") as csv_f:
                 csv_f.seek(0)
@@ -718,26 +686,20 @@ class MainWindow:
                 stud_id_col = reader.fieldnames[dialog.stud_id_combo.get_active()]
                 first_name_col = reader.fieldnames[dialog.first_name_combo.get_active()]
                 surname_col = reader.fieldnames[dialog.surname_combo.get_active()]
-                trials_col = reader.fieldnames[dialog.trial_nr_combo.get_active()]
+                attempts_col = reader.fieldnames[dialog.trial_nr_combo.get_active()]
                 try:
+                    zero_points = [Taskpoint(task.id, 0.0) for task in self.tasks]
                     for row in reader:
-                        stud_id = row[stud_id_col]
-                        first_name = row[first_name_col]
-                        surname = row[surname_col]
-                        trials = row[trials_col]
-
-                        self.grading_rows.append(
-                            GradingRow(
-                                stud_id,
-                                first_name,
-                                surname,
-                                int(trials),
-                                self.tasks,
-                                self.grade_calculation,
-                                self.update_histogram,
-                                self.point_table.liststore,
-                            )
+                        stud = Student(
+                            id=row[stud_id_col],
+                            first_name=row[first_name_col],
+                            surname=row[surname_col],
+                            attempts=int(row[attempts_col]),
+                            points=zero_points,
                         )
+
+                        self.grading.add_student(stud)
+
                 except ValueError:
                     error_dialog = Gtk.MessageDialog(
                         self.window,
@@ -752,26 +714,9 @@ class MainWindow:
                     error_dialog.run()
                     error_dialog.destroy()
 
-            self.grading_rows = list(sorted(self.grading_rows, key=lambda r: r.stud_id))
-            for row in self.grading_rows:
-                self.grading_table.add(row)
             self.modified = True
 
         dialog.destroy()
-
-    def clear_grading_rows(self, add_csv_button: bool = False):
-        self.grading_rows.clear()
-        for child in self.grading_table.get_children()[2:]:
-            self.grading_table.remove(child)
-        if add_csv_button:
-            csv_import_button = Gtk.Button()
-            csv_import_button.set_label("Import from CSV")
-            csv_import_button.connect("clicked", self.csv_import)
-            csv_import_button.set_size_request(150, -1)
-            csv_import_button.set_halign(Gtk.Align.CENTER)
-            csv_import_button.get_style_context().add_class("suggested-action")
-            self.grading_table.add(csv_import_button)
-            self.grading_table.show_all()
 
     def clear_tasks(self, rebuild_gradingtable: bool = False):
         # First two items are header and seperator
@@ -781,9 +726,7 @@ class MainWindow:
         self.task_list.add(AddTaskRow(self.add_task))
         self.task_list.show_all()
 
-        if rebuild_gradingtable:
-            for row in self.grading_rows:
-                row.update_entries(self.tasks)
+        self.grading.update_after_clear_tasks()
 
         self.rebuild_gradingtable_header()
 
@@ -848,10 +791,7 @@ class MainWindow:
             for t in self.tasks:
                 task_settings.append(t.as_dict())
             save_content["Tasks"] = task_settings
-            grading_entries = []
-            for row in self.grading_rows:
-                grading_entries.append(row.as_dict())
-            save_content["Grading"] = grading_entries
+            save_content["Grading"] = self.grading.export()
 
             with filepath.open("w") as savefile:
                 savefile.write(json.dumps(save_content, indent=4, sort_keys=True))
@@ -934,33 +874,9 @@ class MainWindow:
                 self.update_grade_table(None, False)
                 self.rebuild_gradingtable_header()
 
-                for grading in exam["Grading"]:
-                    points = []
-                    for t in self.tasks:
-                        points.append(float(grading["Tasks"][str(t.id)]))
-                    points.append(float(grading["Tasks"]["Additional_Points"]))
+                for stud in exam["Grading"]:
+                    self.grading.add_student(Student.from_dict(stud))
 
-                    self.grading_rows.append(
-                        GradingRow(
-                            grading["StudentID"],
-                            grading["First_Name"],
-                            grading["Surname"],
-                            grading["Attempt"],
-                            self.tasks,
-                            self.grade_calculation,
-                            self.update_histogram,
-                            GradeType.from_shortname(grading.get("GradeState", "")),
-                            points,
-                            self.point_table.liststore,
-                        ),
-                    )
-
-                self.grading_rows = list(
-                    sorted(self.grading_rows, key=lambda r: r.stud_id)
-                )
-                for row in self.grading_rows:
-                    self.grading_table.add(row)
-                self.grading_table.show_all()
                 self.block_histogram_update = tmp
                 self.update_histogram(None, False)
                 self.generate_task_plots()
@@ -1011,11 +927,13 @@ class MainWindow:
         self.examname_entry.set_text("")
         self.examdate = ""
         self.builder.get_object("examdate_button_label").set_text("<Select>")
+        self.grading.clear_rows()
+        self.grading.add_csv_import_button(self.csv_import)
         self.clear_tasks()
-        self.clear_grading_rows(True)
 
         self.builder.get_object("passing_spin_but").set_value(10.0)
         self.builder.get_object("stepsize_spin_but").set_value(1.0)
+        self.max_points = 20.0
         self.update_grade_table(None)
         self.ptshistogramax.clear()
         self.update_histogram(None, False)
