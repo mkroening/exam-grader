@@ -118,6 +118,7 @@ class MainWindow:
 
         mplfigure = Figure(figsize=(10, 2), dpi=100)
         self.histogramax = mplfigure.add_subplot(111)
+        self.histogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
         self.histogrambars = self.histogramax.bar(
             self.point_table.labels,
             [3.0] * len(self.point_table.labels),
@@ -463,7 +464,9 @@ class MainWindow:
     def recreate_pthistograms(self):
         # Recreation of the pthistograms is necessary, because the amount of bars changes
         self.ptshistogramax.clear()
+        self.ptshistogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
         self.ptshistogramax2.clear()
+        self.ptshistogramax2.yaxis.set_major_locator(MaxNLocator(integer=True))
         self.ptshistogramax2.set_title("Exam Point Distributions")
         self.ptshistogramax2.set_ylabel("Count")
         self.ptshistogramax2.set_xlabel("Points")
