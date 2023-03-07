@@ -304,9 +304,7 @@ class GradeTable:
         return tab
 
 
-@Gtk.Template(
-    filename=str((Path(__file__) / "../glade/Add_Grading_Row.glade").resolve())
-)
+@Gtk.Template(resource_path="/exam-grader/Add_Grading_Row.glade")
 class AddGradingRow(Gtk.Box):
     __gtype_name__ = "add_grading_row"
     id_entry = Gtk.Template.Child("id_entry")
@@ -353,7 +351,7 @@ class AddGradingRow(Gtk.Box):
         self.clear()
 
 
-@Gtk.Template(filename=str((Path(__file__) / "../glade/Grading_Row.glade").resolve()))
+@Gtk.Template(resource_path="/exam-grader/Grading_Row.glade")
 class GradingRow(Gtk.Box):
     __gtype_name__ = "grading_row"
 

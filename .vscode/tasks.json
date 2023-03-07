@@ -1,0 +1,10 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compile gresources",
+            "type": "shell",
+            "command": "glib-compile-resources --target=ui.gresource resources.xml"
+        }
+    ]
+}

@@ -171,7 +171,7 @@
     <property name="window-position">center</property>
     <property name="default-width">1200</property>
     <property name="default-height">800</property>
-    <property name="icon">../assets/exam.svg</property>
+    <property name="icon">assets/exam.svg</property>
     <signal name="delete-event" handler="on_quit" swapped="no"/>
     <child>
       <object class="GtkOverlay">

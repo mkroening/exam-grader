@@ -59,9 +59,7 @@ def get_content_list(entry, target_type):
 
 
 def show_about_dialog(parent):
-    gladefile = Path(__file__) / "../glade/About.glade"
-    builder = Gtk.Builder()
-    builder.add_from_file(str(gladefile.resolve()))
+    builder = Gtk.Builder.new_from_resource('/exam-grader/About.glade')
     dialog = builder.get_object("about")
     dialog.set_transient_for(parent)
     dialog.run()

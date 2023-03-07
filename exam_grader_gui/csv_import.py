@@ -5,9 +5,7 @@ from typing import Optional
 from gi.repository import Gtk
 
 
-@Gtk.Template(
-    filename=str((Path(__file__) / "../glade/Csv_Import_Dialog.glade").resolve())
-)
+@Gtk.Template(resource_path="/exam-grader/Csv_Import_Dialog.glade")
 class CsvImportDialog(Gtk.Dialog):
     __gtype_name__ = "csv_import_dialog"
 

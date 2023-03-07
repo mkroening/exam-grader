@@ -6,7 +6,7 @@ from pathlib import Path
 from statistics import mean, median
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from gi.repository import Gdk, GLib, Gtk
+from gi.repository import Gdk, GLib, Gtk, Gio
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
@@ -29,12 +29,9 @@ from .gui_helpers import (
 )
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 
-
 class MainWindow:
     def __init__(self):
-        gladefile = Path(__file__) / "../glade/Main_Window.glade"
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file(str(gladefile.resolve()))
+        self.builder = Gtk.Builder.new_from_resource('/exam-grader/Main_Window.glade')
 
         self.window = self.builder.get_object("window")
 
@@ -920,7 +917,7 @@ class MainWindow:
         return True
 
 
-@Gtk.Template(filename=str((Path(__file__) / "../glade/Add_Task_Row.glade").resolve()))
+@Gtk.Template(resource_path="/exam-grader/Add_Task_Row.glade")
 class AddTaskRow(Gtk.Box):
     __gtype_name__ = "add_task_row"
 
@@ -945,7 +942,7 @@ class AddTaskRow(Gtk.Box):
             self.cb(self.taskname_entry.get_text(), points)
 
 
-@Gtk.Template(filename=str((Path(__file__) / "../glade/Task_Row.glade").resolve()))
+@Gtk.Template(resource_path="/exam-grader/Task_Row.glade")
 class TaskRow(Gtk.Box):
     __gtype_name__ = "task_row"
 
