@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkImage" id="add-image">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">list-add-symbolic</property>
+  </object>
+  <template class="add_grading_row" parent="GtkBox">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="halign">center</property>
+    <property name="valign">center</property>
+    <property name="margin-top">5</property>
+    <property name="margin-bottom">5</property>
+    <child>
+      <object class="GtkEntry" id="id_entry">
+        <property name="width-request">100</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="xalign">0.5</property>
+        <property name="placeholder-text" translatable="yes">Student ID</property>
+        <signal name="changed" handler="on_entry_changed" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkEntry" id="first_name_entry">
+        <property name="width-request">170</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="xalign">0.5</property>
+        <property name="placeholder-text" translatable="yes">First Name</property>
+        <signal name="changed" handler="on_entry_changed" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkEntry" id="surname_entry">
+        <property name="width-request">170</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="xalign">0.5</property>
+        <property name="placeholder-text" translatable="yes">Surname</property>
+        <signal name="changed" handler="on_entry_changed" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkEntry" id="attempts_entry">
+        <property name="width-request">75</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="width-chars">3</property>
+        <property name="xalign">0.5</property>
+        <property name="placeholder-text" translatable="yes">Attempt</property>
+        <property name="input-purpose">digits</property>
+        <signal name="activate" handler="on_activate" swapped="no"/>
+        <signal name="changed" handler="on_entry_changed" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">3</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="add_button">
+        <property name="label" translatable="yes">Add</property>
+        <property name="visible">True</property>
+        <property name="sensitive">False</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+        <property name="tooltip-text" translatable="yes">Add a student with the entered properties</property>
+        <property name="image">add-image</property>
+        <signal name="clicked" handler="on_add_clicked" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">4</property>
+      </packing>
+    </child>
+    <style>
+      <class name="linked"/>
+    </style>
+  </template>
+</interface>
