@@ -7,7 +7,6 @@ version="0.0.1"
 description="Grade your exams"
 readme = "README.md"
 requires-python = ">=3.6"
-keywords = ["one", "two"]
 license = {text = "GPL-3.0-or-later"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -30,4 +29,4 @@ include = ["exam_grader_gui*"]  # ["*"] by default
 "exam_scan_tools.glade" = ["*.glade"]
 
 [project.scripts]
-exam-grader = "exam_grader.start:start"
+exam-grader = "exam_grader_gui.start:start"
