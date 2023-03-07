@@ -243,14 +243,14 @@ class GradeTable:
             #     pass
         return hist
 
-    def point_histogram(self, point_step: float = 0.5) -> Dict[float, int]:
+    def point_histogram(self, point_step: float = 0.5) -> Dict[str, int]:
         hist = {}
         for label in range(int(self.point_table.points_maximum / point_step + 1.0)):
-            hist[float(label / (1 / point_step))] = 0
+            hist[str(label / (1 / point_step))] = 0
         for stud, row in self.entries:
             if stud.grade_type.is_counted():
                 try:
-                    hist[stud.total_points_final] += 1
+                    hist[str(stud.total_points_final)] += 1
                 except KeyError:
                     pass
         return hist
@@ -447,6 +447,7 @@ class GradingRow(Gtk.Box):
                 self.point_entries[t.id] = new_e
                 self.task_point_area.add(new_e)
 
+        self.task_point_area.show_all()
         new_vals = self.student.recalculate_points_and_grade()
         self.set_points_from_update_vals(new_vals)
 

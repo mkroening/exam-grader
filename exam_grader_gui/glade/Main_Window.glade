@@ -62,7 +62,7 @@
             <property name="tooltip-text" translatable="yes">Show separator lines in the point histogram</property>
             <property name="active">True</property>
             <property name="draw-indicator">True</property>
-            <signal name="toggled" handler="on_main_stack_visible_child_changed" swapped="no"/>
+            <signal name="toggled" handler="on_grade_sep_toggle" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>

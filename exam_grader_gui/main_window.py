@@ -14,19 +14,20 @@ from matplotlib.ticker import MaxNLocator
 from .csv_import import CsvImportDialog
 from .exam import ExamTask, GradeState, GradeType, PointTable
 from .grading_table import (
+    AddGradingRow,
     GradeTable,
     GradingRow,
-    AddGradingRow,
+    SortKeys,
     Student,
     Taskpoint,
     grading_row_sort_func,
-    SortKeys,
 )
 from .gui_helpers import (
     get_content,
     show_about_dialog,
     successful_with_open_folder_dialog,
 )
+from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 
 
 class MainWindow:
@@ -73,6 +74,7 @@ class MainWindow:
             "on_open_clicked": self.open,
             "on_new_clicked": self.clear,
             "on_sort_key_changed": self.on_sort_key_changed,
+            "on_grade_sep_toggle": self.on_grade_sep_toggle,
         }
         self.builder.connect_signals(handlers)
 
@@ -102,7 +104,6 @@ class MainWindow:
         self.modified = False
         self.block_histogram_update = False
         self.block_grade_table_update = False
-        self.histogram_changed = True
         self.max_points = 100
         self.point_table = PointTable(10, 5, self.max_points)
 
@@ -113,39 +114,17 @@ class MainWindow:
         self.grading = GradeTable(
             self.tasks, self.point_table, self.grading_table, self.update_histogram
         )
-        self.builder.get_object("grading_table_box").add(AddGradingRow(self.grading))
-        self.add_task("Exampletask", 10, suppress_generations=True)
-
-        mplfigure = Figure(figsize=(10, 2), dpi=100)
-        self.histogramax = mplfigure.add_subplot(111)
-        self.histogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        self.histogrambars = self.histogramax.bar(
-            self.point_table.labels,
-            [3.0] * len(self.point_table.labels),
-            width=0.5,
-            color=["tab:red"] + ["tab:blue"] * (len(self.point_table.labels) - 1),
+        self.grade_histogram = GradeHistogram(
+            self.point_table,
+            self.histogram_area,
+            viewport=True,
         )
-        self.histogramax.plot()
-        self.canvas = FigureCanvas(mplfigure)
-        self.canvas.set_size_request(400, 200)
-        self.histogram_area.add_with_viewport(self.canvas)
         self.histogram_area.show_all()
 
-        mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
-        self.ptshistogramax = mplfigure_pts.add_subplot(111)
-        self.ptshistogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        self.pthistogrambars = self.ptshistogramax.bar(
-            range(self.max_points),
-            [1.0] * self.max_points,
-            width=0.4,
+        self.point_histogram = PointHistogram(
+            self.max_points, self.point_histogram_area, viewport=True
         )
-        self.ptshistogramax.plot()
-        self.ptscanvas = FigureCanvas(mplfigure_pts)
-        self.ptscanvas.set_size_request(400, 200)
-        self.point_histogram_area.add_with_viewport(self.ptscanvas)
         self.point_histogram_area.show_all()
-        self.pthistogramseps = []
-        self.bigpthistogramseps = []
 
         figure_boxplt = Figure(figsize=(10, 2), dpi=100)
         self.boxplt_ax = figure_boxplt.add_subplot(111)
@@ -157,35 +136,23 @@ class MainWindow:
         self.boxcanvas.set_size_request(500, 300)
         self.total_exam_stat.add(self.boxcanvas)
 
-        mplfigure_pts = Figure(figsize=(10, 2), dpi=100)
-        self.ptshistogramax2 = mplfigure_pts.add_subplot(111)
-        self.ptshistogramax2.yaxis.set_major_locator(MaxNLocator(integer=True))
-        self.ptshistogramax2_box = self.ptshistogramax2.twinx()
-        self.ptshistogramax2_box.set_ylim(0, 1)
-        self.pthistogrambars2 = self.ptshistogramax2.bar(
-            range(self.max_points),
-            [1.0] * self.max_points,
-            width=0.4,
+        self.big_histogram = BigPointHistogram(
+            self.max_points, self.total_exam_stat, viewport=False, stepsize=0.5
         )
-
-        self.recreate_pthistograms()
-
-        self.ptshistogramax2.plot()
-        self.ptscanvas2 = FigureCanvas(mplfigure_pts)
-        self.ptscanvas2.set_size_request(500, 300)
-        self.total_exam_stat.add(self.ptscanvas2)
         self.total_exam_stat.show_all()
 
         self.taskplots = {}
 
-        self.update_histogram(None, False)
+        self.builder.get_object("grading_table_box").add(AddGradingRow(self.grading))
+        self.add_task("Exampletask", 10, suppress_generations=True)
 
         self.generate_task_plots()
 
         self.grading_table.show_all()
         self.rebuild_gradingtable_header()
 
-        self.update_grade_table(None, False, redraw_histograms=False)
+        self.should_update_histogram = True
+        self.update_grade_table(None, False)
         self.modified = False
         self.examdate = ""
         self.lastpath = None
@@ -296,7 +263,7 @@ class MainWindow:
         self.boxcanvas.draw()
         self.boxcanvas.flush_events()
 
-        self.draw_big_histogram()
+        self.big_histogram.draw()
 
         if not rev_is_active:
             self.processing_revealer.set_reveal_child(False)
@@ -308,45 +275,16 @@ class MainWindow:
 
     def redraw_visible_graphs(self):
         if self.main_stack.get_visible_child_name() == "setup_page":
-            self.draw_histogram()
-            self.draw_ptshistogram()
+            if self.should_update_histogram:
+                self.update_histogram()
+            self.grade_histogram.draw()
+            self.point_histogram.draw()
             self.update_statistics()
         elif self.main_stack.get_visible_child_name() == "graphs_page":
+            if self.should_update_histogram:
+                self.update_histogram()
+            self.big_histogram.draw()
             self.update_task_plots()
-
-    def draw_histogram(self):
-        if self.main_stack.get_visible_child_name() != "setup_page":
-            return
-        if self.histogram_changed:
-            self.recreate_pthistograms()
-        for i, b in enumerate(self.histogrambars):
-            b.set_height(self.histogram[self.point_table.labels[i]])
-        self.histogramax.relim()
-        self.histogramax.autoscale_view()
-        self.canvas.draw()
-        self.canvas.flush_events()
-
-    def draw_ptshistogram(self):
-        if self.main_stack.get_visible_child_name() != "setup_page":
-            return
-        for i, b in enumerate(self.pthistogrambars):
-            b.set_height(self.point_histogram[float(i / 2)])
-        self.ptshistogramax.relim()
-
-        if self.grade_separators_checkbox.get_active():
-            for x in self.point_table.points_min:
-                if x != 0.0:
-                    self.pthistogramseps.append(
-                        self.ptshistogramax.axvline(x, alpha=0.1, lw=0.5, c="black")
-                    )
-        else:
-            for sep in self.pthistogramseps:
-                sep.remove()
-            self.pthistogramseps.clear()
-
-        self.ptshistogramax.autoscale_view()
-        self.ptscanvas.draw()
-        self.ptscanvas.flush_events()
 
     def update_statistics(self, widget=None):
         points, grades = self.grading.point_and_grades_list()
@@ -417,79 +355,38 @@ class MainWindow:
             self.builder.get_object("points_max_label").set_text("0")
             self.builder.get_object("best_grade_label").set_text("0")
 
-    def draw_big_histogram(self):
-        points = list(
-            chain.from_iterable([[p] * cnt for p, cnt in self.point_histogram.items()])
-        )
-        self.ptshistogramax2_box.clear()
-        style = dict(alpha=0.25)
-        self.ptshistogramax2_box.boxplot(
-            points,
-            vert=False,
-            positions=[0.8],
-            widths=0.1,
-            boxprops=style,
-            flierprops=style,
-            whiskerprops=style,
-            capprops=style,
-            meanprops=style,
-        )
-        self.ptshistogramax2_box.set_yticks([])
-        self.ptshistogramax2_box.set_ylim(bottom=0.0, top=1.0)
-
-        for i, b in enumerate(self.pthistogrambars2):
-            b.set_height(self.point_histogram.get(float(i/2), 0.0))
-
-        if self.grade_separators_checkbox.get_active():
-            for x in self.point_table.points_min:
-                if x != 0.0:
-                    self.bigpthistogramseps.append(
-                        self.ptshistogramax2.axvline(x, alpha=0.1, lw=0.5, c="black")
-                    )
-        else:
-            for sep in self.bigpthistogramseps:
-                sep.remove()
-            self.bigpthistogramseps.clear()
-
-        self.ptshistogramax2.relim()
-        self.ptshistogramax2.autoscale_view()
-        self.ptscanvas2.draw()
-        self.ptscanvas2.flush_events()
-
     def on_gradetable_changed(self, widget):
         self.update_grade_table()
 
-        GLib.timeout_add(200, self.recreate_pthistograms)
+        GLib.timeout_add(200, self.redraw_visible_graphs)
 
-    def recreate_pthistograms(self):
-        # Recreation of the pthistograms is necessary, because the amount of bars changes
-        self.ptshistogramax.clear()
-        self.ptshistogramax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        self.ptshistogramax2.clear()
-        self.ptshistogramax2.yaxis.set_major_locator(MaxNLocator(integer=True))
-        self.ptshistogramax2.set_title("Exam Point Distributions")
-        self.ptshistogramax2.set_ylabel("Count")
-        self.ptshistogramax2.set_xlabel("Points")
-        nr_point_bars = int(self.max_points * 1 / 0.5 + 1)
-        nr_fail_bars = int(self.point_table.points_max[0] * 2)
-        self.pthistogrambars = self.ptshistogramax.bar(
-            [i * 0.5 for i in range(nr_point_bars)],
-            [1.0] * nr_point_bars,
-            width=0.4,
-            color=["tab:red"] * nr_fail_bars
-            + ["tab:blue"] * (nr_point_bars - nr_fail_bars),
-        )
-        self.pthistogrambars2 = self.ptshistogramax2.bar(
-            [i * 0.5 for i in range(nr_point_bars)],
-            [1.0] * nr_point_bars,
-            width=0.4,
-            color=["tab:red"] * nr_fail_bars
-            + ["tab:blue"] * (nr_point_bars - nr_fail_bars),
-        )
-        self.histogram_changed = False
+    def update_max_points(self):
+        # If only the maxpoints change, we don't need to update the grading and grade histogram
+        passing_pts = self.passing_spin.get_value()
+        stepsize = self.stepsize_spin.get_value()
+        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+        new_max = self.point_table.points_max[-1]
+        label_to = self.builder.get_object("1.0_to")
+        label_to.set_text(f"{new_max}")
+        self.point_histogram.relimit_x_axis(new_max)
+        self.big_histogram.relimit_x_axis(new_max)
+
+    def on_grade_sep_toggle(self, widget):
+        if self.grade_separators_checkbox.get_active():
+            self.point_histogram.update_separators(self.point_table.points_min)
+            self.big_histogram.update_separators(self.point_table.points_min)
+        else:
+            self.point_histogram.clear_separators()
+            self.big_histogram.clear_separators()
+        if self.main_stack.get_visible_child_name() == "setup_page":
+            self.point_histogram.draw()
+        elif self.main_stack.get_visible_child_name() == "graphs_page":
+            self.big_histogram.draw()
 
     def update_grade_table(
-        self, widget=None, was_modified: bool = True, redraw_histograms: bool = True
+        self,
+        widget=None,
+        was_modified: bool = True,
     ):
         if self.block_grade_table_update:
             return
@@ -511,23 +408,42 @@ class MainWindow:
             label_to = self.builder.get_object(f"{grade}_to")
             label_to.set_text(f"{self.point_table.points_max[i]}")
 
-        if redraw_histograms:
-            self.draw_histogram()
-            self.update_statistics()
+        self.point_histogram.recolor(self.point_table.points_max[0])
+        if self.grade_separators_checkbox.get_active():
+            self.point_histogram.update_separators(self.point_table.points_min)
+            self.big_histogram.update_separators(self.point_table.points_min)
+        else:
+            self.point_histogram.clear_separators()
+            self.big_histogram.clear_separators()
+        self.big_histogram.recolor(self.point_table.points_max[0])
+        self.grade_histogram.update_heights_from_histogram(self.g_histogram)
         return False
 
+    # The points and thus the grades have changed
     def update_histogram(self, widget=None, was_modified: bool = True):
         if self.block_histogram_update:
             return
         if was_modified:
             self.modified = True
-        self.histogram = self.grading.grade_histogram()
-        self.point_histogram = self.grading.point_histogram()
+        if (
+            self.main_stack.get_visible_child_name() != "setup_page"
+            and self.main_stack.get_visible_child_name() != "graphs_page"
+        ):
+            self.should_update_histogram = True
+            return
+
+        self.g_histogram = self.grading.grade_histogram()
+        self.p_histogram = self.grading.point_histogram()
+
         for grade in self.point_table.labels:
             label_count = self.builder.get_object(f"{grade}_count")
-            label_count.set_text(f"{self.histogram[grade]}")
+            label_count.set_text(f"{self.g_histogram[grade]}")
         self.builder.get_object("point_table").show_all()
-        self.histogram_changed = True
+
+        self.point_histogram.update_heights_from_histogram(self.p_histogram)
+        self.big_histogram.update_heights_from_histogram(self.p_histogram)
+        self.grade_histogram.update_heights_from_histogram(self.g_histogram)
+        self.should_update_histogram = False
 
     def on_about_clicked(self, _widget):
         self.help_menu_popover.popdown()
@@ -651,11 +567,12 @@ class MainWindow:
         self.block_histogram_update = True
         self.grading.update_after_add_task(new_task)
         self.block_histogram_update = tmp
+        self.update_max_points()
+
         if not suppress_generations:
-            self.update_grade_table(None)
-            self.grading_table.show_all()
             self.rebuild_gradingtable_header()
             self.generate_task_plots()
+            self.redraw_visible_graphs()
 
     def remove_task(self, id: int):
         tasklist_pos = None
@@ -670,13 +587,13 @@ class MainWindow:
         self.task_list.show_all()
 
         self.max_points = sum(map(lambda t: t.max_points, self.tasks))
-        self.update_grade_table(None, redraw_histograms=False)
+        self.point_histogram.relimit_x_axis(self.max_points)
+        self.big_histogram.relimit_x_axis(self.max_points)
+        self.update_grade_table(None)
 
         self.grading.update_after_remove_task(id)
         self.update_histogram()
-        self.draw_histogram()
-        self.draw_ptshistogram()
-        self.update_statistics()
+        self.redraw_visible_graphs()
         self.rebuild_gradingtable_header()
 
         self.generate_task_plots()
@@ -916,7 +833,10 @@ class MainWindow:
                 self.stepsize_spin.set_value(exam["PointTable"]["step"])
                 self.block_grade_table_update = tmp
 
-                self.update_grade_table(None, False, redraw_histograms=False)
+                self.update_max_points()
+                self.point_histogram.relimit_x_axis(self.point_table.points_max[-1])
+                self.big_histogram.relimit_x_axis(self.point_table.points_max[-1])
+                self.update_grade_table(None, False)
                 self.rebuild_gradingtable_header()
 
                 for stud in exam["Grading"]:
@@ -986,9 +906,12 @@ class MainWindow:
         self.block_grade_table_update = tmp
 
         self.max_points = 20.0
+        self.point_histogram.clear_separators()
+        self.point_histogram.relimit_x_axis(self.max_points)
+        self.big_histogram.clear_separators()
+        self.big_histogram.relimit_x_axis(self.max_points)
         if regenerate_graphs_and_stat:
             self.generate_task_plots()
-            self.recreate_pthistograms()
             self.update_grade_table(None)
             self.redraw_visible_graphs()
         self.modified = False
