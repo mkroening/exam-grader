@@ -29,9 +29,10 @@ from .gui_helpers import (
 )
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 
+
 class MainWindow:
     def __init__(self):
-        self.builder = Gtk.Builder.new_from_resource('/exam-grader/Main_Window.glade')
+        self.builder = Gtk.Builder.new_from_resource("/exam-grader/Main_Window.glade")
 
         self.window = self.builder.get_object("window")
 

@@ -60,7 +60,9 @@ class CsvImportDialog(Gtk.Dialog):
                 combo_index = search_keyword(["FIRST_NAME", "VORNAME"])
                 self.first_name_combo.set_active(combo_index)
                 self.surname_combo.set_model(model)
-                combo_index = search_keyword(["SURNAME", "FAMILY_NAME", "LAST_NAME", "NACHNAME"])
+                combo_index = search_keyword(
+                    ["SURNAME", "FAMILY_NAME", "LAST_NAME", "NACHNAME"]
+                )
                 self.surname_combo.set_active(combo_index)
                 self.trial_nr_combo.set_model(model)
                 combo_index = search_keyword(["TRIAL", "ANTRITTE"])

@@ -1,10 +1,10 @@
 import os
 import subprocess
 import sys
-from typing import Optional, Callable, Any
 from collections import deque
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Callable, Optional
 
 from gi.repository import Gdk, Gtk
 
@@ -59,7 +59,7 @@ def get_content_list(entry, target_type):
 
 
 def show_about_dialog(parent):
-    builder = Gtk.Builder.new_from_resource('/exam-grader/About.glade')
+    builder = Gtk.Builder.new_from_resource("/exam-grader/About.glade")
     dialog = builder.get_object("about")
     dialog.set_transient_for(parent)
     dialog.run()
