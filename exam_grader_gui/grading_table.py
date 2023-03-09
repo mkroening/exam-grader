@@ -13,8 +13,8 @@ from .exam import ExamTask, GradeState, GradeType, PointTable
 from .gui_helpers import get_content
 
 
-def round_half_points(f: float) -> float:
-    return int((f + 0.25) / 0.5) * 0.5
+def round_points(f: float, step: float) -> float:
+    return int((f + step / 2) / step) * step
 
 
 def empty_cb(widget, data):
@@ -51,6 +51,7 @@ class Student:
         ] = None,
         additional_points: float = 0.0,
         grade_type: GradeType = GradeType.NOTE,
+        round_points: float = 0.5,
     ):
         self.id = id
         self.first_name = first_name
@@ -66,6 +67,7 @@ class Student:
         self.state_final = GradeState.PASS
         self.grade = ""
         self.grade_final = ""
+        self.round_points = round_points
         self.recalculate_points_and_grade()
 
     @classmethod
@@ -98,11 +100,11 @@ class Student:
         self.points.clear()
 
     def recalculate_points_and_grade(self) -> GradingUpdateVals:
-        self.total_points = round_half_points(
-            sum(map(lambda p: p, self.points.values()))
+        self.total_points = round_points(
+            sum(map(lambda p: p, self.points.values())), 0.25
         )
-        self.total_points_final = round_half_points(
-            self.total_points + self.additional_points
+        self.total_points_final = round_points(
+            self.total_points + self.additional_points, self.round_points
         )
 
         if self.grade_calculation is not None:
@@ -176,6 +178,7 @@ class GradeTable:
 
     def add_student(self, stud: Student):
         stud.grade_calculation = self.point_table.grade
+        stud.round_points = self.point_table.min_step
         row = GradingRow(
             stud,
             self.tasks,

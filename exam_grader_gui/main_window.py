@@ -101,11 +101,12 @@ class MainWindow:
         self.sort_key_combo = self.builder.get_object("sort_key_combo")
         self.point_table_box = self.builder.get_object("point_table")
 
+        self.stepsize = 1.0
         self.modified = False
         self.block_histogram_update = False
         self.block_grade_table_update = False
         self.max_points = 100
-        self.point_table = PointTable(10, 5, self.max_points)
+        self.point_table = PointTable(10, 5, self.max_points, min_step=self.stepsize)
 
         self.tasks: List[ExamTask] = []
 
@@ -122,7 +123,10 @@ class MainWindow:
         self.histogram_area.show_all()
 
         self.point_histogram = PointHistogram(
-            self.max_points, self.point_histogram_area, viewport=True
+            self.max_points,
+            self.point_histogram_area,
+            viewport=True,
+            stepsize=self.stepsize,
         )
         self.point_histogram_area.show_all()
 
@@ -137,7 +141,10 @@ class MainWindow:
         self.total_exam_stat.add(self.boxcanvas)
 
         self.big_histogram = BigPointHistogram(
-            self.max_points, self.total_exam_stat, viewport=False, stepsize=0.5
+            self.max_points,
+            self.total_exam_stat,
+            viewport=False,
+            stepsize=self.stepsize,
         )
         self.total_exam_stat.show_all()
 
@@ -364,7 +371,9 @@ class MainWindow:
         # If only the maxpoints change, we don't need to update the grading and grade histogram
         passing_pts = self.passing_spin.get_value()
         stepsize = self.stepsize_spin.get_value()
-        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+        self.point_table = PointTable(
+            passing_pts, stepsize, self.max_points, min_step=self.stepsize
+        )
         new_max = self.point_table.points_max[-1]
         label_to = self.builder.get_object("1.0_to")
         label_to.set_text(f"{new_max}")
@@ -394,7 +403,9 @@ class MainWindow:
             self.modified = True
         passing_pts = self.passing_spin.get_value()
         stepsize = self.stepsize_spin.get_value()
-        self.point_table = PointTable(passing_pts, stepsize, self.max_points, 0.5)
+        self.point_table = PointTable(
+            passing_pts, stepsize, self.max_points, min_step=self.stepsize
+        )
 
         tmp = self.block_histogram_update
         self.block_histogram_update = True
