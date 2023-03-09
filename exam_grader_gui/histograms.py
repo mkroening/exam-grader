@@ -9,6 +9,9 @@ from .exam import PointTable
 
 
 class Histogram:
+    heights: Collection[int]
+    labels: List[str]
+
     def __init__(
         self,
         labels: Collection[str],
@@ -20,7 +23,7 @@ class Histogram:
         with_boxplot: bool = False,
         bar_width: float = 0.5,
     ):
-        self.labels = labels
+        self.labels = list(labels)
         self.bar_width = bar_width
         mplfigure = Figure(figsize=(10, 2), dpi=100)
         self.ax = mplfigure.add_subplot(111)
@@ -54,7 +57,7 @@ class Histogram:
         else:
             area.add(self.canvas)
 
-    def draw(self):
+    def draw(self) -> None:
         if self.with_boxplot:
             points: List[int] = []
             for i, h in enumerate(self.heights):
