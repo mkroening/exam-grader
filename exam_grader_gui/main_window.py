@@ -613,10 +613,10 @@ class MainWindow:
         for child in self.task_label_box.get_children():
             self.task_label_box.remove(child)
         for i, t in enumerate(self.tasks):
-            label = Gtk.Label(f"T{i}:\n{t.name[0:12]}")
+            label = Gtk.Label(f"T{i+1}:\n{t.name[0:12]}")
             label.set_size_request(90, -1)
             label.set_justify(Gtk.Justification.CENTER)
-            label.set_tooltip_text(f"Task {i}:\n{t.name}")
+            label.set_tooltip_text(f"Task {i+1}:\n{t.name}")
             self.task_label_box.add(label)
         self.task_label_box.show_all()
 
