@@ -136,3 +136,11 @@ class PointTable:
             "max_points": self.points_maximum,
             "min_step": self.min_step,
         }
+
+    def as_str(self) -> str:
+        s = "Grade\tFrom\tTo\n"
+        for g, f, t in reversed(
+            list(zip(self.labels, self.points_min, self.points_max))
+        ):
+            s += f"{g}\t{f}\t{t}\n"
+        return s

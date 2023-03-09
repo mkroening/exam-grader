@@ -551,6 +551,7 @@
                             <property name="margin-top">5</property>
                             <property name="margin-bottom">5</property>
                             <property name="selection-mode">none</property>
+                            <signal name="button-press-event" handler="on_grade_table_button_pressed" swapped="no"/>
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>

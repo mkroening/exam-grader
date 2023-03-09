@@ -73,6 +73,7 @@ class MainWindow:
             "on_new_clicked": self.clear,
             "on_sort_key_changed": self.on_sort_key_changed,
             "on_grade_sep_toggle": self.on_grade_sep_toggle,
+            "on_grade_table_button_pressed": self.on_grade_table_button_pressed,
         }
         self.builder.connect_signals(handlers)
 
@@ -98,6 +99,7 @@ class MainWindow:
         self.passing_spin = self.builder.get_object("passing_spin_but")
         self.stepsize_spin = self.builder.get_object("stepsize_spin_but")
         self.sort_key_combo = self.builder.get_object("sort_key_combo")
+        self.point_table_box = self.builder.get_object("point_table")
 
         self.modified = False
         self.block_histogram_update = False
@@ -916,6 +918,20 @@ class MainWindow:
         self.set_buttons_sensitive(True)
 
         return True
+
+    def on_grade_table_button_pressed(self, widget, data):
+        if data.get_button() == (True, 3):
+            menu = Gtk.Menu()
+            entry = Gtk.MenuItem.new_with_label("Copy Table")
+            entry.connect("activate", self.copy_grade_table)
+            menu.add(entry)
+            menu.attach_to_widget(self.point_table_box)
+            menu.show_all()
+            menu.popup_at_pointer(data)
+
+    def copy_grade_table(self, widget):
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.clipboard.set_text(self.point_table.as_str(), -1)
 
 
 @Gtk.Template(resource_path="/exam-grader/Add_Task_Row.glade")
