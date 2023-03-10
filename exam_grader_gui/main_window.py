@@ -21,6 +21,7 @@ from .grading_table import (
     Student,
     Taskpoint,
     grading_row_sort_func,
+    grading_row_filter_func,
 )
 from .gui_helpers import (
     get_content,
@@ -74,6 +75,8 @@ class MainWindow:
             "on_sort_key_changed": self.on_sort_key_changed,
             "on_grade_sep_toggle": self.on_grade_sep_toggle,
             "on_grade_table_button_pressed": self.on_grade_table_button_pressed,
+            "on_filter_text_changed": self.on_filter_changed,
+            "on_filter_text_clear": self.on_filter_clear,
         }
         self.builder.connect_signals(handlers)
 
@@ -150,7 +153,9 @@ class MainWindow:
 
         self.taskplots = {}
 
-        self.builder.get_object("grading_table_box").set_center_widget(AddGradingRow(self.grading))
+        self.builder.get_object("grading_table_box").set_center_widget(
+            AddGradingRow(self.grading)
+        )
         self.add_task("Exampletask", 10, suppress_generations=True)
 
         self.generate_task_plots()
@@ -200,6 +205,18 @@ class MainWindow:
     def on_sort_key_changed(self, widget):
         key = SortKeys(widget.get_active())
         self.grading_table.set_sort_func(grading_row_sort_func, key, False)
+
+    def on_filter_changed(self, widget):
+        text = widget.get_text()
+        if text == "":
+            widget.set_icon_sensitive(Gtk.EntryIconPosition.SECONDARY, False)
+        else:
+            widget.set_icon_sensitive(Gtk.EntryIconPosition.SECONDARY, True)
+        self.grading_table.set_filter_func(grading_row_filter_func, text, False)
+
+    def on_filter_clear(self, widget, data, event):
+        widget.set_text("")
+        self.grading_table.set_filter_func(None, None, False)
 
     def generate_task_plot(self, tasknr: int) -> Dict[str, Any]:
         task = self.tasks[tasknr]

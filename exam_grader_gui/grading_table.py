@@ -622,3 +622,18 @@ def grading_row_sort_func(row_1, row_2, data: SortKeys, notify_destroy):
 
     print(f"Warning: Unknown list row comparison: {type(c1)} - {type(c2)}")
     return False
+
+
+def grading_row_filter_func(row, text: str, notify_destroy):
+    c = row.get_child()
+    if type(c) == Gtk.Separator or type(c) == Gtk.Box:
+        return True
+    assert type(c) == GradingRow
+    t = text.lower()
+    if (
+        t in c.id.lower()
+        or t in c.student.first_name.lower()
+        or t in c.student.surname.lower()
+    ):
+        return True
+    return False
