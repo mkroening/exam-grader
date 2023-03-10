@@ -51,19 +51,20 @@ class GradeType(IntEnum):
 
     @classmethod
     def longnames(cls) -> List[str]:
+        # From https://wiki-intern.rwth-aachen.de/display/RD/Notenskala+und+Notenvermerke#NotenskalaundNotenvermerke-Eintr%C3%A4gebeiPr%C3%BCfungsterminen-vonBesch%C3%A4ftigten
         return [
             "Note",
+            "Bestanden",
             "Nicht erschienen",
+            "Nicht zugelassen",
             "Prüfung abgebrochen",
             "Täuschung",
-            "Bestanden",
-            "Nicht zugelassen",
-            "Keine Beurteilung",
+            "Technische Störung",
         ]
 
     @classmethod
     def shortnames(cls) -> List[str]:
-        return ["", "X", "PA", "U", "B", "NZ", "Q"]
+        return ["", "B", "X", "NZ", "PA", "U", "TS"]
 
     @classmethod
     def as_liststore(cls) -> Gtk.ListStore:
