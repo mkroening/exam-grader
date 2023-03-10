@@ -297,7 +297,7 @@
                                         <child>
                                           <object class="GtkListBoxRow" id="header_row">
                                             <property name="visible">True</property>
-                                            <property name="can-focus">True</property>
+                                            <property name="can-focus">False</property>
                                             <property name="opacity">0.40</property>
                                             <property name="activatable">False</property>
                                             <property name="selectable">False</property>
@@ -357,7 +357,7 @@
                                         <child>
                                           <object class="GtkListBoxRow">
                                             <property name="visible">True</property>
-                                            <property name="can-focus">True</property>
+                                            <property name="can-focus">False</property>
                                             <property name="activatable">False</property>
                                             <property name="selectable">False</property>
                                             <child>
@@ -514,8 +514,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="margin-left">2</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-start">2</property>
                                 <property name="activatable">False</property>
                                 <property name="selectable">False</property>
@@ -581,7 +580,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="activatable">False</property>
                                 <property name="selectable">False</property>
                                 <child>
@@ -595,7 +594,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="activatable">False</property>
                                 <property name="selectable">False</property>
@@ -659,7 +658,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -724,7 +723,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -789,7 +788,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -854,7 +853,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -919,7 +918,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -984,7 +983,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -1049,7 +1048,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -1114,7 +1113,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -1179,7 +1178,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -1244,7 +1243,7 @@
                             <child>
                               <object class="GtkListBoxRow">
                                 <property name="visible">True</property>
-                                <property name="can-focus">True</property>
+                                <property name="can-focus">False</property>
                                 <property name="margin-top">5</property>
                                 <property name="margin-bottom">5</property>
                                 <property name="activatable">False</property>
@@ -1788,7 +1787,7 @@
                                   <object class="GtkListBoxRow" id="header_row1">
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can-focus">True</property>
+                                    <property name="can-focus">False</property>
                                     <property name="activatable">False</property>
                                     <property name="selectable">False</property>
                                     <child>
@@ -2017,7 +2016,7 @@ Points</property>
                                   <object class="GtkListBoxRow">
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can-focus">True</property>
+                                    <property name="can-focus">False</property>
                                     <property name="activatable">False</property>
                                     <property name="selectable">False</property>
                                     <child>
