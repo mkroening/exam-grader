@@ -105,21 +105,21 @@ class MainWindow:
         self.point_table_box = self.builder.get_object("point_table")
 
         self.accel_group = self.builder.get_object("grading_accel")
-        key, mod =  Gtk.accelerator_parse("<Control>n")
+        key, mod = Gtk.accelerator_parse("<Control>n")
         self.accel_group.connect(key, mod, 0, self.clear)
-        key, mod =  Gtk.accelerator_parse("<Control>o")
+        key, mod = Gtk.accelerator_parse("<Control>o")
         self.accel_group.connect(key, mod, 0, self.open)
-        key, mod =  Gtk.accelerator_parse("<Control>s")
+        key, mod = Gtk.accelerator_parse("<Control>s")
         self.accel_group.connect(key, mod, 0, self.save)
-        key, mod =  Gtk.accelerator_parse("<Control>i")
+        key, mod = Gtk.accelerator_parse("<Control>i")
         self.accel_group.connect(key, mod, 0, self.csv_import)
-        key, mod =  Gtk.accelerator_parse("<Control>e")
+        key, mod = Gtk.accelerator_parse("<Control>e")
         self.accel_group.connect(key, mod, 0, self.export)
-        key, mod =  Gtk.accelerator_parse("<Control>1")
+        key, mod = Gtk.accelerator_parse("<Control>1")
         self.accel_group.connect(key, mod, 0, self.switch_main_stack_setup)
-        key, mod =  Gtk.accelerator_parse("<Control>2")
+        key, mod = Gtk.accelerator_parse("<Control>2")
         self.accel_group.connect(key, mod, 0, self.switch_main_stack_grading)
-        key, mod =  Gtk.accelerator_parse("<Control>3")
+        key, mod = Gtk.accelerator_parse("<Control>3")
         self.accel_group.connect(key, mod, 0, self.switch_main_stack_graphs)
 
         self.stepsize = 1.0
@@ -990,6 +990,7 @@ class MainWindow:
 
     def switch_main_stack_graphs(self, *args):
         self.main_stack.set_visible_child_name("graphs_page")
+
 
 @Gtk.Template(resource_path="/exam-grader/Add_Task_Row.glade")
 class AddTaskRow(Gtk.Box):
