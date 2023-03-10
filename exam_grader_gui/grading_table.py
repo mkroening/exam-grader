@@ -185,9 +185,17 @@ class GradeTable:
             self.grading_liststore,
             self.entry_changed_cb,
             self.delete_row,
+            self.focus_next_row,
         )
         insort(self.entries, (stud, row))
         self.listbox.add(row)
+
+    def focus_next_row(self, widget, row):
+        row_nr = next(i for i, r in enumerate(self.listbox) if r.get_child() == row)
+        try:
+            self.listbox.get_row_at_index(row_nr + 1).get_child().focus_on_first_entry()
+        except AttributeError:
+            pass
 
     def delete_row(self, widget, id: int):
         for child in self.listbox.get_children()[2:]:
@@ -379,6 +387,7 @@ class GradingRow(Gtk.Box):
         examstates: Gtk.ListStore,
         row_changed_cb: Callable,
         row_deleted_cb: Callable,
+        next_row_cb: Callable,
     ):
         super(Gtk.Box, self).__init__()
 
@@ -405,16 +414,35 @@ class GradingRow(Gtk.Box):
         self.point_entries = {}
 
         self.additional_points_entry.connect("changed", self.on_entry_update, -1)
+        self.additional_points_entry.connect("activate", next_row_cb, self)
         self.additional_points_entry.set_text(str(stud.additional_points))
 
         for t in self.tasks:
             points = stud.points[t.id]
             taskpoint_entry = self.new_entry(t.id, points, t.max_points)
+            taskpoint_entry.connect("activate", self.next_entry_grab_focus, t.id)
             self.point_entries[t.id] = taskpoint_entry
             self.task_point_area.add(taskpoint_entry)
 
         self.set_dim_entries(not (self.student.grade_type.is_counted()))
         self.task_point_area.show_all()
+
+    def next_entry_grab_focus(self, widget, data):
+        next_entry = None
+        try:
+            task_nr = next(i for i, t in enumerate(self.tasks) if t.id == data)
+            next_entry = self.point_entries[self.tasks[task_nr + 1].id]
+        except (StopIteration, IndexError):
+            next_entry = self.additional_points_entry
+        next_entry.grab_focus()
+
+    def focus_on_first_entry(self):
+        next_entry = None
+        try:
+            next_entry = self.point_entries[self.tasks[0].id]
+        except IndexError:
+            next_entry = self.additional_points_entry
+        next_entry.grab_focus()
 
     def new_entry(self, taskid: int, points: float, max_points: float) -> Gtk.Entry:
         taskpoint_entry = Gtk.Entry()
