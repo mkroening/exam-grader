@@ -65,11 +65,11 @@ You need to install [MSYS2](https://www.msys2.org/).
 Please execute the following instructions in the _mingw64_ shell.
 ```sh
 > $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
-> C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-cx_Freeze mingw-w64-x86_64-python3-gobject mingw-w64-x86_64-python3-cairo mingw64/mingw-w64-x86_64-gcc
-> python3-pip
+> C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-cx_Freeze mingw-w64-x86_64-python3-gobject mingw-w64-x86_64-python3-cairo
 > pip install .
+
+# Create the exe
 > python setup-win64.py build
-> mv build/exe.mingw* exam_grader
 ```
 You should then be able to execute the python files from that shell as well.
 

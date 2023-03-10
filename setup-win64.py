@@ -16,7 +16,6 @@ for asset in assets:
 missing_dll = ['libgtk-3-0.dll',
                'libgdk-3-0.dll',
                'libcairo-gobject-2.dll',
-               'libpoppler-glib-8.dll',
                'libgdk_pixbuf-2.0-0.dll',
                'libjpeg-8.dll',
                'libpango-1.0-0.dll',
@@ -63,7 +62,6 @@ required_gi_namespaces = [
     "GdkPixbuf-2.0",
     "GModule-2.0",
     "Atk-1.0",
-    "Poppler-0.18",
     "HarfBuzz-0.0",
 ]
 
@@ -105,8 +103,8 @@ buildOptions = dict(
 )
 
 
-setup(name="exam-scan-manager",
+setup(name="exam-grader",
       version="0.1",
-      description="My GUI application!",
+      description="Handy GUI for grading exams",
       options=dict(build_exe=buildOptions),
-      executables=[Executable("bin/exam_scan_manager", base=base)])
+      executables=[Executable("bin/exam_grader", base=base)])
