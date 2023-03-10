@@ -122,9 +122,8 @@
     <property name="can-focus">False</property>
     <property name="icon-name">document-save</property>
   </object>
-  <object class="GtkWindow" id="window">
+  <object class="GtkApplicationWindow" id="window">
     <property name="can-focus">False</property>
-    <property name="window-position">center</property>
     <property name="default-width">1200</property>
     <property name="default-height">800</property>
     <property name="icon">assets/exam.svg</property>
@@ -2103,9 +2102,6 @@ Points</property>
                             <child internal-child="entry">
                               <object class="GtkEntry">
                                 <property name="can-focus">False</property>
-                                <property name="halign">end</property>
-                                <property name="valign">center</property>
-                                <property name="width-chars">10</property>
                               </object>
                             </child>
                           </object>
