@@ -70,13 +70,10 @@ type-checking:
 #       mingw-w64-x86_64-python3-cx_Freeze
 #       mingw-w64-x86_64-python3-gobject
 #       mingw-w64-x86_64-python3-cairo
-#       mingw-w64-x86_64-poppler
 #       mingw64/mingw-w64-x86_64-gcc
-#       mingw64/mingw-w64-x86_64-zbar
-#       mingw-w64-x86_64-imagemagick
 #       python3-pip
 
 #   script:
-#     - pip install Wand pypdf2 pyzbar pillow "python-barcode[png]" pypng
+#     - pip install .
 #     - python setup-win64.py build
 #     - mv build/exe.mingw* exam_grader
