@@ -40,6 +40,7 @@
     <property name="step-increment">0.5</property>
     <property name="page-increment">10</property>
   </object>
+  <object class="GtkAccelGroup" id="grading_accel"/>
   <object class="GtkPopover" id="help_menu_popover">
     <property name="width-request">150</property>
     <property name="can-focus">False</property>
@@ -127,6 +128,9 @@
     <property name="default-width">1200</property>
     <property name="default-height">800</property>
     <property name="icon">assets/exam.svg</property>
+    <accel-groups>
+      <group name="grading_accel"/>
+    </accel-groups>
     <signal name="delete-event" handler="on_quit" swapped="no"/>
     <child>
       <object class="GtkOverlay">
@@ -2316,6 +2320,7 @@ Points</property>
           <object class="GtkStackSwitcher" id="main_switcher">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="tooltip-markup" translatable="yes">Main Functin Pages  &lt;span style="italic"&gt;- CTRL + 1/2/3 &lt;/span&gt;</property>
             <property name="homogeneous">True</property>
             <property name="stack">main_stack</property>
           </object>
@@ -2354,7 +2359,7 @@ Points</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Start a new session</property>
+                <property name="tooltip-markup" translatable="yes">Start a new session &lt;span style="italic"&gt;- CTRL + N&lt;/span&gt;</property>
                 <property name="image">new_icon</property>
                 <property name="always-show-image">True</property>
                 <signal name="clicked" handler="on_new_clicked" swapped="no"/>
@@ -2370,7 +2375,7 @@ Points</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Open Examgrading file</property>
+                <property name="tooltip-markup" translatable="yes">Open Examgrading file  &lt;span style="italic"&gt;- CTRL + O&lt;/span&gt;</property>
                 <property name="image">open_icon</property>
                 <property name="always-show-image">True</property>
                 <signal name="clicked" handler="on_open_clicked" swapped="no"/>
@@ -2386,7 +2391,7 @@ Points</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Save exam grading</property>
+                <property name="tooltip-markup" translatable="yes">Save exam grading  &lt;span style="italic"&gt;- CTRL + S&lt;/span&gt;</property>
                 <property name="halign">center</property>
                 <property name="image">save_image</property>
                 <property name="always-show-image">True</property>
@@ -2414,7 +2419,7 @@ Points</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Import from CSV</property>
+                <property name="tooltip-markup" translatable="yes">Import from CSV  &lt;span style="italic"&gt;- CTRL + I&lt;/span&gt;</property>
                 <property name="image">csv_import_image</property>
                 <property name="always-show-image">True</property>
                 <signal name="clicked" handler="on_csv_import_clicked" swapped="no"/>
@@ -2433,7 +2438,7 @@ Points</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
-                <property name="tooltip-text" translatable="yes">Export grades as CSV</property>
+                <property name="tooltip-markup" translatable="yes">Export grades as CSV &lt;span style="italic"&gt;- CTRL + E&lt;/span&gt;</property>
                 <property name="halign">center</property>
                 <property name="image">export-icon</property>
                 <property name="always-show-image">True</property>

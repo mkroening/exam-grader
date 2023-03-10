@@ -104,6 +104,24 @@ class MainWindow:
         self.sort_key_combo = self.builder.get_object("sort_key_combo")
         self.point_table_box = self.builder.get_object("point_table")
 
+        self.accel_group = self.builder.get_object("grading_accel")
+        key, mod =  Gtk.accelerator_parse("<Control>n")
+        self.accel_group.connect(key, mod, 0, self.clear)
+        key, mod =  Gtk.accelerator_parse("<Control>o")
+        self.accel_group.connect(key, mod, 0, self.open)
+        key, mod =  Gtk.accelerator_parse("<Control>s")
+        self.accel_group.connect(key, mod, 0, self.save)
+        key, mod =  Gtk.accelerator_parse("<Control>i")
+        self.accel_group.connect(key, mod, 0, self.csv_import)
+        key, mod =  Gtk.accelerator_parse("<Control>e")
+        self.accel_group.connect(key, mod, 0, self.export)
+        key, mod =  Gtk.accelerator_parse("<Control>1")
+        self.accel_group.connect(key, mod, 0, self.switch_main_stack_setup)
+        key, mod =  Gtk.accelerator_parse("<Control>2")
+        self.accel_group.connect(key, mod, 0, self.switch_main_stack_grading)
+        key, mod =  Gtk.accelerator_parse("<Control>3")
+        self.accel_group.connect(key, mod, 0, self.switch_main_stack_graphs)
+
         self.stepsize = 1.0
         self.modified = False
         self.block_histogram_update = False
@@ -490,7 +508,7 @@ class MainWindow:
         self.builder.get_object("examdate_button_label").set_text(self.examdate)
         self.builder.get_object("examdate_button").get_popover().popdown()
 
-    def export(self, _widget):
+    def export(self, *args):
         file_choose_dialog = Gtk.FileChooserDialog(
             "Export CSV",
             self.window,
@@ -640,7 +658,7 @@ class MainWindow:
             self.task_label_box.add(label)
         self.task_label_box.show_all()
 
-    def csv_import(self, widget):
+    def csv_import(self, *args):
         dialog = CsvImportDialog(self.window, self.lastpath)
         resp = dialog.run()
         if resp == Gtk.ResponseType.OK:
@@ -705,7 +723,7 @@ class MainWindow:
 
         dialog.destroy()
 
-    def clear_tasks(self, rebuild_gradingtable: bool = False):
+    def clear_tasks(self, rebuild_gradingtable: bool = False, *args):
         # First two items are header and seperator
         for t in self.task_list.get_children()[2:]:
             self.task_list.remove(t)
@@ -717,7 +735,7 @@ class MainWindow:
 
         self.rebuild_gradingtable_header()
 
-    def save(self, widget):
+    def save(self, widget, *args):
         file_choose_dialog = Gtk.FileChooserDialog(
             "Save File",
             self.window,
@@ -801,7 +819,7 @@ class MainWindow:
         else:
             file_choose_dialog.destroy()
 
-    def open(self, widget):
+    def open(self, widget, *args):
         file_choose_dialog = Gtk.FileChooserDialog(
             "Open File",
             self.window,
@@ -964,6 +982,14 @@ class MainWindow:
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.clipboard.set_text(self.point_table.as_str(), -1)
 
+    def switch_main_stack_setup(self, *args):
+        self.main_stack.set_visible_child_name("setup_page")
+
+    def switch_main_stack_grading(self, *args):
+        self.main_stack.set_visible_child_name("grading_page")
+
+    def switch_main_stack_graphs(self, *args):
+        self.main_stack.set_visible_child_name("graphs_page")
 
 @Gtk.Template(resource_path="/exam-grader/Add_Task_Row.glade")
 class AddTaskRow(Gtk.Box):
