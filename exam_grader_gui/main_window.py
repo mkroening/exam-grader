@@ -332,14 +332,17 @@ class MainWindow:
             self.builder.get_object("points_average_label").set_text(
                 "{:.1f}".format(mean(points))
             )
-            self.builder.get_object("points_average_passed_label").set_text(
-                "{:.1f}".format(mean(points_passed))
-            )
             self.builder.get_object("points_max_label").set_text(
                 "{:.2f}".format(max(points))
             )
             self.builder.get_object("best_grade_label").set_text(str(min(grades)))
 
+            if len(points_passed) > 0:
+                self.builder.get_object("points_average_passed_label").set_text(
+                    "{:.1f}".format(mean(points_passed))
+                )
+            else:
+                self.builder.get_object("points_average_passed_label").set_text("0")
             if len(grades_passed) > 0:
                 self.builder.get_object("avg_grade_passed_label").set_text(
                     "{:.2f}".format(mean(grades_passed))
