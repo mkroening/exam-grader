@@ -150,7 +150,7 @@ class MainWindow:
 
         self.taskplots = {}
 
-        self.builder.get_object("grading_table_box").add(AddGradingRow(self.grading))
+        self.builder.get_object("grading_table_box").set_center_widget(AddGradingRow(self.grading))
         self.add_task("Exampletask", 10, suppress_generations=True)
 
         self.generate_task_plots()

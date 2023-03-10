@@ -66,7 +66,7 @@
     </child>
     <child>
       <object class="GtkScrolledWindow">
-        <property name="width-request">170</property>
+        <property name="width-request">150</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="valign">center</property>
@@ -100,7 +100,7 @@
     </child>
     <child>
       <object class="GtkScrolledWindow">
-        <property name="width-request">170</property>
+        <property name="width-request">150</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="valign">center</property>
@@ -239,7 +239,7 @@
     </child>
     <child>
       <object class="GtkLabel" id="total_points_label">
-        <property name="width-request">80</property>
+        <property name="width-request">60</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
@@ -255,7 +255,7 @@
     </child>
     <child>
       <object class="GtkLabel" id="total_points_final_label">
-        <property name="width-request">80</property>
+        <property name="width-request">60</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
@@ -271,7 +271,7 @@
     </child>
     <child>
       <object class="GtkLabel" id="grade_label">
-        <property name="width-request">80</property>
+        <property name="width-request">60</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>
@@ -287,7 +287,7 @@
     </child>
     <child>
       <object class="GtkLabel" id="grade_final_label">
-        <property name="width-request">80</property>
+        <property name="width-request">60</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="halign">center</property>

@@ -71,50 +71,6 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="margin-end">10</property>
-                <property name="label" translatable="yes">Sort by:</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkComboBox" id="sort_key_combo">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="has-entry">True</property>
-                <property name="entry-text-column">0</property>
-                <signal name="changed" handler="on_sort_key_changed" swapped="no"/>
-                <child internal-child="entry">
-                  <object class="GtkEntry">
-                    <property name="can-focus">False</property>
-                    <property name="width-chars">10</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkSeparator">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
@@ -1793,7 +1749,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="grading_table_box">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="orientation">vertical</property>
@@ -1853,7 +1809,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="first_name_label">
-                                            <property name="width-request">170</property>
+                                            <property name="width-request">150</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="halign">center</property>
@@ -1868,7 +1824,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="surname_label">
-                                            <property name="width-request">170</property>
+                                            <property name="width-request">150</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="halign">center</property>
@@ -1969,12 +1925,13 @@ Points</property>
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="total_points_label">
-                                            <property name="width-request">80</property>
+                                            <property name="width-request">60</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
                                             <property name="halign">center</property>
-                                            <property name="label" translatable="yes">Total Points</property>
+                                            <property name="label" translatable="yes">Total
+Points</property>
                                             <property name="justify">center</property>
                                           </object>
                                           <packing>
@@ -1985,7 +1942,7 @@ Points</property>
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="total_points_final_label">
-                                            <property name="width-request">80</property>
+                                            <property name="width-request">60</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
@@ -2002,7 +1959,7 @@ Points</property>
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="grade_label">
-                                            <property name="width-request">80</property>
+                                            <property name="width-request">60</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points"</property>
@@ -2018,7 +1975,7 @@ Points</property>
                                         </child>
                                         <child>
                                           <object class="GtkLabel" id="grade_final_label">
-                                            <property name="width-request">80</property>
+                                            <property name="width-request">60</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points (final)"</property>
@@ -2087,7 +2044,70 @@ Points</property>
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkBox" id="grading_table_box">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child type="center">
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="valign">center</property>
+                            <property name="margin-end">10</property>
+                            <property name="label" translatable="yes">Sort by:</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBox" id="sort_key_combo">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="halign">end</property>
+                            <property name="valign">center</property>
+                            <property name="has-entry">True</property>
+                            <property name="entry-text-column">0</property>
+                            <signal name="changed" handler="on_sort_key_changed" swapped="no"/>
+                            <child internal-child="entry">
+                              <object class="GtkEntry">
+                                <property name="can-focus">False</property>
+                                <property name="halign">end</property>
+                                <property name="valign">center</property>
+                                <property name="width-chars">10</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="pack-type">end</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
