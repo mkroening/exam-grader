@@ -5,6 +5,7 @@
         <file compressed="true"  alias="/Add_Grading_Row.glade">exam_grader_gui/glade/Add_Grading_Row.glade</file>
         <file compressed="true"  alias="/Add_Task_Row.glade">exam_grader_gui/glade/Add_Task_Row.glade</file>
         <file compressed="true"  alias="/Csv_Import_Dialog.glade">exam_grader_gui/glade/Csv_Import_Dialog.glade</file>
+        <file compressed="true"  alias="/Csv_Patch_Dialog.glade">exam_grader_gui/glade/Csv_Patch_Dialog.glade</file>
         <file compressed="true"  alias="/Grading_Row.glade">exam_grader_gui/glade/Grading_Row.glade</file>
         <file compressed="true"  alias="/Main_Window.glade">exam_grader_gui/glade/Main_Window.glade</file>
         <file compressed="true"  alias="/Task_Row.glade">exam_grader_gui/glade/Task_Row.glade</file>

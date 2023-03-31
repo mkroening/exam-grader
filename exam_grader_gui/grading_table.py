@@ -314,6 +314,9 @@ class GradeTable:
             tab.append(stud.as_list())
         return tab
 
+    def get_by_id(self, id: str) -> Student:
+        return next(e[0] for e in self.entries if e[0].id == id)
+
 
 @Gtk.Template(resource_path="/exam-grader/Add_Grading_Row.glade")
 class AddGradingRow(Gtk.Box):

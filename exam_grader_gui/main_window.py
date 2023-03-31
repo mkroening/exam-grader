@@ -6,12 +6,14 @@ from pathlib import Path
 from statistics import mean, median
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from gi.repository import Gdk, GLib, Gtk, Gio
+import chardet
+from gi.repository import Gdk, Gio, GLib, Gtk
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 
 from .csv_import import CsvImportDialog
+from .csv_patch import CsvPatchDialog
 from .exam import ExamTask, GradeState, GradeType, PointTable
 from .grading_table import (
     AddGradingRow,
@@ -20,8 +22,8 @@ from .grading_table import (
     SortKeys,
     Student,
     Taskpoint,
-    grading_row_sort_func,
     grading_row_filter_func,
+    grading_row_sort_func,
 )
 from .gui_helpers import (
     get_content,
@@ -68,6 +70,7 @@ class MainWindow:
             "on_examdate_selected": self.on_examdate_clicked,
             "on_gradetable_value_changed": self.on_gradetable_changed,
             "on_csv_import_clicked": self.csv_import,
+            "on_csv_patch_clicked": self.csv_patch,
             "on_main_stack_visible_child_changed": self.main_visible_child_changed,
             "on_save_clicked": self.save,
             "on_open_clicked": self.open,
@@ -685,7 +688,13 @@ class MainWindow:
             self.grading.clear_rows()
 
             self.lastpath = str(dialog.csv.parent)
-            with dialog.csv.open(newline="") as csv_f:
+
+            with dialog.csv.open("rb") as file:
+                rawdata = file.read(1000)
+            result = chardet.detect(rawdata)
+            encoding = result["encoding"]
+
+            with dialog.csv.open(newline="", encoding=encoding) as csv_f:
                 csv_f.seek(0)
                 reader = csv.DictReader(csv_f, dialect=dialog.csv_dialect)
                 stud_id_col = reader.fieldnames[dialog.stud_id_combo.get_active()]
@@ -720,6 +729,49 @@ class MainWindow:
                     error_dialog.destroy()
 
             self.modified = True
+
+        dialog.destroy()
+
+    def csv_patch(self, *args):
+        self.help_menu_popover.popdown()
+        dialog = CsvPatchDialog(self.window, self.lastpath)
+        resp = dialog.run()
+        if resp == Gtk.ResponseType.OK:
+            self.lastpath = str(dialog.csv.parent)
+
+            with dialog.csv.open("rb") as file:
+                rawdata = file.read(1000)
+            result = chardet.detect(rawdata)
+            encoding = result["encoding"]
+
+            new_csv = []
+
+            with dialog.csv.open("r", newline="", encoding=encoding) as csv_f:
+                csv_f.seek(0)
+                reader = csv.reader(csv_f, dialect=dialog.csv_dialect)
+                stud_id_col = dialog.stud_id_combo.get_active()
+                points_col = dialog.points_combo.get_active() - 1
+                grade_col = dialog.grade_combo.get_active() - 1
+
+                new_csv.append(next(reader))
+
+                for row in reader:
+                    try:
+                        stud = self.grading.get_by_id(row[stud_id_col])
+                        if points_col != -1:
+                            row[points_col] = stud.points_final
+                        if grade_col != -1:
+                            if dialog.separator_combo.get_active_id() == "comma":
+                                row[grade_col] = stud.grade_final.replace(".", ",")
+                            else:
+                                row[grade_col] = stud.grade_final
+                    except StopIteration:
+                        pass
+                    new_csv.append(row)
+
+            with dialog.csv.open("w", newline="") as csv_f:
+                writer = csv.writer(csv_f, dialect=dialog.csv_dialect)
+                writer.writerows(new_csv)
 
         dialog.destroy()
 
