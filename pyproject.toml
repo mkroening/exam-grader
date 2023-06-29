@@ -14,7 +14,8 @@ classifiers = [
 dependencies = [
     "PyGObject", # GTK bindings - (LGPLv2+)
     "matplotlib",
-    "chardet"
+    "chardet",
+    "cryptography",
 ]
 
 [build-system]

@@ -30,6 +30,7 @@ from .gui_helpers import (
     show_about_dialog,
     successful_with_open_folder_dialog,
 )
+from .savefile import save_exam, create_save_content, decrypt_exam_json
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 
 
@@ -189,6 +190,8 @@ class MainWindow:
         self.modified = False
         self.examdate = ""
         self.lastpath = None
+
+        self.passwd = None
 
         self.redraw_visible_graphs()
         self.window.show_all()
@@ -788,88 +791,16 @@ class MainWindow:
         self.rebuild_gradingtable_header()
 
     def save(self, widget, *args):
-        file_choose_dialog = Gtk.FileChooserDialog(
-            "Save File",
-            self.window,
-            Gtk.FileChooserAction.SAVE,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.OK,
-            ),
-        )
-        exam_file_filter = Gtk.FileFilter()
-        exam_file_filter.set_name("Exam Grading Files")
-        exam_file_filter.add_pattern("*.examgrades")
-        file_choose_dialog.add_filter(exam_file_filter)
-        all_files_filter = Gtk.FileFilter()
-        all_files_filter.set_name("All Files")
-        all_files_filter.add_pattern("*")
         examname = self.examname_entry.get_text()
-        if self.lastpath is not None:
-            file_choose_dialog.set_current_folder(self.lastpath)
-        file_choose_dialog.set_current_name(f"{examname}.examgrades")
-
-        ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
-        ok_butt.set_label("Save")
-        ok_butt.get_style_context().add_class("suggested-action")
-
-        file_choose_dialog.get_widget_for_response(
-            Gtk.ResponseType.OK
-        ).get_style_context().add_class("suggested-action")
-
-        response = file_choose_dialog.run()
-        if response == Gtk.ResponseType.OK:
-            filepath = Path(file_choose_dialog.get_filename())
-            file_choose_dialog.destroy()
-
-            if filepath.exists():
-                warn_dialog = Gtk.MessageDialog(
-                    self.window,
-                    Gtk.DialogFlags.MODAL
-                    | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                    | Gtk.DialogFlags.USE_HEADER_BAR,
-                    type=Gtk.MessageType.WARNING,
-                    buttons=Gtk.ButtonsType.OK_CANCEL,
-                    message_format="File exists. Overwrite?",
-                )
-                warn_dialog.get_widget_for_response(
-                    response_id=Gtk.ResponseType.OK
-                ).get_style_context().add_class("destructive-action")
-                response = warn_dialog.run()
-                warn_dialog.destroy()
-                if response != Gtk.ResponseType.OK:
-                    return
-            self.lastpath = str(filepath.parent)
-
-            save_content = {
-                "General": {"Name": examname, "Date": self.examdate},
-                "PointTable": self.point_table.as_dict(),
-            }
-            task_settings = []
-            for t in self.tasks:
-                task_settings.append(t.as_dict())
-            save_content["Tasks"] = task_settings
-            save_content["Grading"] = self.grading.export()
-
-            with filepath.open("w") as savefile:
-                savefile.write(json.dumps(save_content, indent=4, sort_keys=True))
-
-            # dialog = Gtk.MessageDialog(
-            #     self.window,
-            #     Gtk.DialogFlags.MODAL
-            #     | Gtk.DialogFlags.DESTROY_WITH_PARENT
-            #     | Gtk.DialogFlags.USE_HEADER_BAR,
-            #     Gtk.MessageType.INFO,
-            #     Gtk.ButtonsType.OK,
-            #     "File Saved",
-            # )
-            # dialog.show_all()
-            # dialog.run()
-            # dialog.destroy()
-        else:
-            file_choose_dialog.destroy()
+        save_content = create_save_content(
+            examname,
+            self.examdate,
+            self.point_table,
+            self.grading,
+            self.tasks,
+            # password="asdf",
+        )
+        save_exam(self.window, examname, self.lastpath, save_content)
 
     def open(self, widget, *args):
         file_choose_dialog = Gtk.FileChooserDialog(
@@ -909,6 +840,8 @@ class MainWindow:
             exam = {}
             with filepath.open("r") as f:
                 exam = json.loads(f.read())
+                if "Encryption" in exam["General"]:
+                    exam = decrypt_exam_json(exam, password="asdf")
             try:
                 tmp = self.block_histogram_update
                 self.block_histogram_update = True
