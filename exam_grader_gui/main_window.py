@@ -7,6 +7,7 @@ from statistics import mean, median
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import chardet
+from cryptography.fernet import InvalidToken
 from gi.repository import Gdk, Gio, GLib, Gtk
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.figure import Figure
@@ -30,8 +31,8 @@ from .gui_helpers import (
     show_about_dialog,
     successful_with_open_folder_dialog,
 )
-from .savefile import save_exam, create_save_content, decrypt_exam_json
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
+from .savefile import DecryptDialog, create_save_content, decrypt_exam_json, save_exam
 
 
 class MainWindow:
@@ -792,15 +793,15 @@ class MainWindow:
 
     def save(self, widget, *args):
         examname = self.examname_entry.get_text()
-        save_content = create_save_content(
+        save_exam(
+            self.window,
             examname,
             self.examdate,
             self.point_table,
             self.grading,
             self.tasks,
-            # password="asdf",
+            self.lastpath,
         )
-        save_exam(self.window, examname, self.lastpath, save_content)
 
     def open(self, widget, *args):
         file_choose_dialog = Gtk.FileChooserDialog(
@@ -833,15 +834,33 @@ class MainWindow:
             filepath = Path(file_choose_dialog.get_filename())
             self.lastpath = str(filepath.parent)
             file_choose_dialog.destroy()
-            if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
-                return
-            self.set_buttons_sensitive(False)
-            self.processing_revealer.set_reveal_child(True)
+
             exam = {}
             with filepath.open("r") as f:
                 exam = json.loads(f.read())
                 if "Encryption" in exam["General"]:
-                    exam = decrypt_exam_json(exam, password="asdf")
+                    decrypt_dialog = DecryptDialog(self.window)
+                    decrypted_exam = {}
+                    while True:
+                        response = decrypt_dialog.run()
+                        if response == Gtk.ResponseType.OK:
+                            pwd = decrypt_dialog.pwd_entry.get_text()
+                            try:
+                                decrypted_exam = decrypt_exam_json(exam, password=pwd)
+                                decrypt_dialog.destroy()
+                                break
+                            except InvalidToken:
+                                decrypt_dialog.highlight_incorrect_pwd()
+                        elif response == Gtk.ResponseType.CANCEL:
+                            decrypt_dialog.destroy()
+                            return
+                    exam = decrypted_exam
+
+            if not self.clear(None, force=False, regenerate_graphs_and_stat=False):
+                return
+            self.set_buttons_sensitive(False)
+            self.processing_revealer.set_reveal_child(True)
+
             try:
                 tmp = self.block_histogram_update
                 self.block_histogram_update = True
