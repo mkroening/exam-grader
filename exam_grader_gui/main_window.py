@@ -302,10 +302,14 @@ class MainWindow:
         self.boxplt_ax.clear()
         if len(taskpts) > 0:
             self.boxplt = self.boxplt_ax.boxplot(taskpts, labels=tasknames)
+            maxpoints = 1
             for i, t in enumerate(self.tasks):
                 self.boxplt_ax.hlines(
                     t.max_points, i + 0.7, i + 1.3, linewidth=2, color="black"
                 )
+                if t.max_points > maxpoints:
+                    maxpoints = t.max_points
+            self.boxplt_ax.set_ylim(ymin=0, ymax= maxpoints)
             self.boxplt_ax.set_title("Task Point Distributions")
             self.boxplt_ax.set_ylabel("Points")
             self.boxplt_ax.plot()
