@@ -125,6 +125,8 @@ class MainWindow:
         key, mod = Gtk.accelerator_parse("<Control>2")
         self.accel_group.connect(key, mod, 0, self.switch_main_stack_grading)
         key, mod = Gtk.accelerator_parse("<Control>3")
+        self.accel_group.connect(key, mod, 0, self.switch_main_stack_results)
+        key, mod = Gtk.accelerator_parse("<Control>4")
         self.accel_group.connect(key, mod, 0, self.switch_main_stack_graphs)
 
         self.stepsize = 1.0
@@ -187,7 +189,6 @@ class MainWindow:
         self.rebuild_gradingtable_header()
 
         self.should_update_histogram = True
-        self.update_grade_table(None, False)
         self.modified = False
         self.examdate = ""
         self.lastpath = None
@@ -327,7 +328,7 @@ class MainWindow:
         GLib.timeout_add(500, self.redraw_visible_graphs)
 
     def redraw_visible_graphs(self):
-        if self.main_stack.get_visible_child_name() == "setup_page":
+        if self.main_stack.get_visible_child_name() == "grading_page":
             if self.should_update_histogram:
                 self.update_histogram()
             self.grade_histogram.draw()
@@ -436,7 +437,7 @@ class MainWindow:
         else:
             self.point_histogram.clear_separators()
             self.big_histogram.clear_separators()
-        if self.main_stack.get_visible_child_name() == "setup_page":
+        if self.main_stack.get_visible_child_name() == "grading_page":
             self.point_histogram.draw()
         elif self.main_stack.get_visible_child_name() == "graphs_page":
             self.big_histogram.draw()
@@ -486,7 +487,7 @@ class MainWindow:
         if was_modified:
             self.modified = True
         if (
-            self.main_stack.get_visible_child_name() != "setup_page"
+            self.main_stack.get_visible_child_name() != "grading_page"
             and self.main_stack.get_visible_child_name() != "graphs_page"
         ):
             self.should_update_histogram = True
@@ -995,6 +996,9 @@ class MainWindow:
 
     def switch_main_stack_grading(self, *args):
         self.main_stack.set_visible_child_name("grading_page")
+
+    def switch_main_stack_results(self, *args):
+        self.main_stack.set_visible_child_name("results_page")
 
     def switch_main_stack_graphs(self, *args):
         self.main_stack.set_visible_child_name("graphs_page")
