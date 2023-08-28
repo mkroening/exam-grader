@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Decrypt_Dialog.ui -->
+  <requires lib="gtk" version="4.10"/>
+  <template class="decrypt_dialog" parent="GtkWindow">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="baseline-position">top</property>
+        <property name="margin-bottom">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-start">5</property>
+        <property name="margin-top">5</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Encrypted File</property>
+            <style>
+              <class name="heading"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Enter password to unlock</property>
+            <style>
+              <class name="body"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="pwd_entry">
+            <property name="focusable">1</property>
+            <property name="halign">center</property>
+            <property name="input-purpose">password</property>
+            <property name="margin-end">5</property>
+            <property name="margin-start">5</property>
+            <property name="placeholder-text">Password</property>
+            <property name="secondary-icon-name">view-reveal-symbolic</property>
+            <property name="visibility">0</property>
+            <property name="width-chars">20</property>
+            <signal name="activate" handler="on_open_clicked"/>
+            <signal name="changed" handler="on_pwd_changed"/>
+            <signal name="icon-press" handler="on_show_pwd_pressed"/>
+            <signal name="icon-release" handler="on_show_pwd_released"/>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="resizable">False</property>
+    <property name="title">Decrypt File</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">0</property>
+        <child>
+          <object class="GtkButton" id="cancel_button">
+            <property name="css-classes">destructive-action</property>
+            <property name="label">Cancel</property>
+            <signal name="clicked" handler="on_cancel_clicked"/>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="decrypt_button">
+            <property name="css-classes">suggested-action</property>
+            <property name="label">Decrypt</property>
+            <property name="sensitive">False</property>
+            <signal name="clicked" handler="on_open_clicked"/>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

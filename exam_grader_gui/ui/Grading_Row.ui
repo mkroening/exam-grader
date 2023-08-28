@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Grading_Row.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkListStore" id="exam_states"/>
+  <template class="grading_row" parent="GtkBox">
+    <property name="hexpand-set">True</property>
+    <property name="spacing">5</property>
+    <property name="valign">center</property>
+    <child>
+      <object class="GtkLabel" id="student_id_label">
+        <property name="halign">center</property>
+        <property name="label" translatable="yes">Student ID</property>
+        <property name="valign">center</property>
+        <property name="width-request">100</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="child">
+          <object class="GtkViewport">
+            <property name="child">
+              <object class="GtkLabel" id="first_name_label">
+                <property name="halign">center</property>
+                <property name="label" translatable="yes">First Name</property>
+                <property name="valign">center</property>
+                <property name="width-request">170</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="text_entry_limit"/>
+                </style>
+              </object>
+            </property>
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <property name="valign">center</property>
+        <property name="width-request">150</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="child">
+          <object class="GtkViewport">
+            <property name="child">
+              <object class="GtkLabel" id="surname_label">
+                <property name="halign">center</property>
+                <property name="label" translatable="yes">Surname</property>
+                <property name="valign">center</property>
+                <property name="width-request">170</property>
+                <property name="xalign">0</property>
+              </object>
+            </property>
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <property name="valign">center</property>
+        <property name="width-request">150</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="trials_label">
+        <property name="halign">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="width-request">60</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkComboBox" id="state_combo">
+        <property name="active">0</property>
+        <property name="active-id">1</property>
+        <property name="entry-text-column">1</property>
+        <property name="halign">center</property>
+        <property name="has-entry">1</property>
+        <property name="hexpand-set">True</property>
+        <property name="id-column">0</property>
+        <property name="model">exam_states</property>
+        <property name="popup-fixed-width">0</property>
+        <property name="valign">center</property>
+        <property name="vexpand-set">True</property>
+        <property name="width-request">90</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator" id="s1"/>
+    </child>
+    <child>
+      <object class="GtkBox" id="task_points">
+        <property name="spacing">5</property>
+        <property name="valign">center</property>
+        <style>
+          <class name="grade_row"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="additional_points_entry">
+        <property name="focusable">1</property>
+        <property name="margin-start">10</property>
+        <property name="max-width-chars">3</property>
+        <property name="placeholder-text" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="width-chars">3</property>
+        <property name="width-request">90</property>
+        <property name="xalign">0.5</property>
+        <style>
+          <class name="flat"/>
+          <class name="text_entry_limit"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator" id="s2"/>
+    </child>
+    <child>
+      <object class="GtkLabel" id="total_points_label">
+        <property name="halign">center</property>
+        <property name="justify">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="width-request">60</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="total_points_final_label">
+        <property name="halign">center</property>
+        <property name="justify">center</property>
+        <property name="label" translatable="yes">0</property>
+        <property name="valign">center</property>
+        <property name="width-request">80</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="grade_label">
+        <property name="halign">center</property>
+        <property name="justify">center</property>
+        <property name="label" translatable="yes">5.0</property>
+        <property name="valign">center</property>
+        <property name="width-request">60</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="grade_final_label">
+        <property name="halign">center</property>
+        <property name="justify">center</property>
+        <property name="label" translatable="yes">5.0</property>
+        <property name="valign">center</property>
+        <property name="width-request">60</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="delete_button">
+        <property name="focusable">1</property>
+        <property name="halign">center</property>
+        <property name="icon-name">edit-delete-symbolic</property>
+        <property name="receives-default">1</property>
+        <property name="tooltip-text">Remove this entry from the results table.</property>
+        <property name="valign">center</property>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Add_Task_Row.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <template class="add_task_row" parent="GtkBox">
+    <property name="halign">center</property>
+    <property name="valign">center</property>
+    <child>
+      <object class="GtkEntry" id="taskname_entry">
+        <property name="focusable">1</property>
+        <property name="placeholder-text" translatable="yes">Mytask</property>
+        <property name="width-request">220</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="points_entry">
+        <property name="focusable">1</property>
+        <property name="halign">center</property>
+        <property name="input-purpose">digits</property>
+        <property name="max-width-chars">3</property>
+        <property name="placeholder-text" translatable="yes">42</property>
+        <property name="width-chars">3</property>
+        <property name="width-request">80</property>
+        <property name="xalign">0.5</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="add_button">
+        <property name="focusable">1</property>
+        <property name="halign">center</property>
+        <property name="label" translatable="yes">Add</property>
+        <property name="receives-default">1</property>
+        <property name="valign">center</property>
+        <property name="width-request">50</property>
+      </object>
+    </child>
+    <style>
+      <class name="linked"/>
+    </style>
+  </template>
+</interface>

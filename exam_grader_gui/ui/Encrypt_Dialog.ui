@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Save_Pwd_Dialog.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <template class="encrypt_dialog" parent="GtkWindow">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="baseline-position">top</property>
+        <property name="margin-bottom">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-start">5</property>
+        <property name="margin-top">5</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Encrypted File</property>
+            <style>
+              <class name="heading"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Enter enryption password</property>
+            <style>
+              <class name="body"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="pwd_entry">
+            <property name="focusable">1</property>
+            <property name="halign">center</property>
+            <property name="input-purpose">password</property>
+            <property name="margin-end">5</property>
+            <property name="margin-start">5</property>
+            <property name="placeholder-text">Password</property>
+            <property name="secondary-icon-name">view-reveal-symbolic</property>
+            <property name="visibility">0</property>
+            <property name="width-chars">20</property>
+            <signal name="activate" handler="on_save_encr_clicked"/>
+            <signal name="changed" handler="on_pwd_changed"/>
+            <signal name="icon-press" handler="on_show_pwd_pressed"/>
+            <signal name="icon-release" handler="on_show_pwd_released"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="homogeneous">True</property>
+            <property name="spacing">5</property>
+            <property name="valign">end</property>
+            <child>
+              <object class="GtkButton" id="cancel_button">
+                <property name="css-classes">destructive-action</property>
+                <property name="label">Cancel</property>
+                <signal name="clicked" handler="on_cancel_clicked"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="save_plain_button">
+                <property name="label">Save Unencrypted</property>
+                <signal name="clicked" handler="on_no_encr_clicked"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="save_encrypt_button">
+                <property name="css-classes">suggested-action</property>
+                <property name="label">Save Encrypted</property>
+                <property name="sensitive">False</property>
+                <signal name="clicked" handler="on_save_encr_clicked"/>
+              </object>
+            </child>
+            <style/>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="modal">True</property>
+    <property name="resizable">False</property>
+    <property name="title">Encrypt File</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">False</property>
+      </object>
+    </property>
+  </template>
+</interface>

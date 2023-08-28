@@ -1,0 +1,227 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Csv_Patch_Dialog.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkFileFilter" id="csv-filter">
+    <mime-types>
+      <mime-type>text/csv</mime-type>
+    </mime-types>
+  </object>
+  <template class="csv_patch_dialog" parent="GtkWindow">
+    <property name="child">
+      <object class="GtkGrid">
+        <property name="margin-bottom">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-start">5</property>
+        <property name="margin-top">5</property>
+        <child>
+          <object class="GtkRevealer" id="csv_col_selection_revealer">
+            <property name="child">
+              <object class="GtkGrid" id="manip_grid">
+                <property name="column-spacing">10</property>
+                <property name="row-spacing">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Student ID column:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="stud_id_combo">
+                    <property name="active">2</property>
+                    <property name="hexpand">1</property>
+                    <signal name="changed" handler="on_combo_changed"/>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Grade:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">4</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="points_combo">
+                    <property name="active">0</property>
+                    <property name="hexpand">1</property>
+                    <signal name="changed" handler="on_combo_changed"/>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="grade_combo">
+                    <property name="active">0</property>
+                    <property name="hexpand">1</property>
+                    <signal name="changed" handler="on_combo_changed"/>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">4</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Identifier Column:</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">2</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Patch Columns:</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">2</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Points:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="quote_toggle_button">
+                    <property name="focusable">1</property>
+                    <property name="label" translatable="yes">Quote all fields</property>
+                    <property name="tooltip-text" translatable="yes">Wether all fields in the CSV should be quoted
+(e.g, "Peter"; "1234";"1.0")</property>
+                    <signal name="toggled" handler="on_quote_toggle"/>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">2</property>
+                      <property name="row">6</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Decimal separator:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">7</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Output Options:</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">2</property>
+                      <property name="row">5</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="separator_combo">
+                    <property name="active">0</property>
+                    <signal name="changed" handler="on_combo_changed"/>
+                    <items>
+                      <item id="comma">Comma (",")</item>
+                      <item id="point">Point (".")</item>
+                    </items>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">7</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </property>
+            <property name="hexpand">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="select_file_button">
+            <property name="label">&lt;select file&gt;</property>
+            <signal name="clicked" handler="on_select_file_clicked"/>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">0</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">CSV File:</property>
+            <property name="xalign">0</property>
+            <style>
+              <class name="title-4"/>
+            </style>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="title">Patch CSV</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">False</property>
+        <child type="end">
+          <object class="GtkButton" id="patch_button">
+            <property name="label">Patch</property>
+            <property name="sensitive">False</property>
+            <signal name="clicked" handler="on_patch_clicked"/>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton" id="cancel_button">
+            <property name="label">Cancel</property>
+            <signal name="clicked" handler="on_cancel_clicked"/>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

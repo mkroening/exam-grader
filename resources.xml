@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
     <gresource prefix="/exam-grader">
-        <file compressed="true"  alias="/About.glade">exam_grader_gui/glade/About.glade</file>
-        <file compressed="true"  alias="/Add_Grading_Row.glade">exam_grader_gui/glade/Add_Grading_Row.glade</file>
-        <file compressed="true"  alias="/Add_Task_Row.glade">exam_grader_gui/glade/Add_Task_Row.glade</file>
-        <file compressed="true"  alias="/Csv_Import_Dialog.glade">exam_grader_gui/glade/Csv_Import_Dialog.glade</file>
-        <file compressed="true"  alias="/Csv_Patch_Dialog.glade">exam_grader_gui/glade/Csv_Patch_Dialog.glade</file>
-        <file compressed="true"  alias="/Grading_Row.glade">exam_grader_gui/glade/Grading_Row.glade</file>
-        <file compressed="true"  alias="/Main_Window.glade">exam_grader_gui/glade/Main_Window.glade</file>
-        <file compressed="true"  alias="/Task_Row.glade">exam_grader_gui/glade/Task_Row.glade</file>
-        <file compressed="true"  alias="/Save_Pwd_Dialog.glade">exam_grader_gui/glade/Save_Pwd_Dialog.glade</file>
-        <file compressed="true"  alias="/Decrypt_Dialog.glade">exam_grader_gui/glade/Decrypt_Dialog.glade</file>
+        <file compressed="true"  alias="/About.ui">exam_grader_gui/ui/About.ui</file>
+        <file compressed="true"  alias="/Add_Grading_Row.ui">exam_grader_gui/ui/Add_Grading_Row.ui</file>
+        <file compressed="true"  alias="/Add_Task_Row.ui">exam_grader_gui/ui/Add_Task_Row.ui</file>
+        <file compressed="true"  alias="/Csv_Import_Dialog.ui">exam_grader_gui/ui/Csv_Import_Dialog.ui</file>
+        <file compressed="true"  alias="/Csv_Patch_Dialog.ui">exam_grader_gui/ui/Csv_Patch_Dialog.ui</file>
+        <file compressed="true"  alias="/Decrypt_Dialog.ui">exam_grader_gui/ui/Decrypt_Dialog.ui</file>
+        <file compressed="true"  alias="/Encrypt_Dialog.ui">exam_grader_gui/ui/Encrypt_Dialog.ui</file>
+        <file compressed="true"  alias="/Grading_Row.ui">exam_grader_gui/ui/Grading_Row.ui</file>
+        <file compressed="true"  alias="/Main_Window.ui">exam_grader_gui/ui/Main_Window.ui</file>
+        <file compressed="true"  alias="/Task_Row.ui">exam_grader_gui/ui/Task_Row.ui</file>
         <file compressed="true"  alias="/assets/exam.svg">exam_grader_gui/assets/exam.svg</file>
+        <file compressed="true"  alias="/assets/style.css">exam_grader_gui/assets/style.css</file>
     </gresource>
 </gresources>
