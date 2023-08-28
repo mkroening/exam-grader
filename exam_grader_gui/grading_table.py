@@ -188,7 +188,7 @@ class GradeTable:
             self.focus_next_row,
         )
         insort(self.entries, (stud, row))
-        self.listbox.add(row)
+        self.listbox.append(row)
 
     def focus_next_row(self, widget, row):
         row_nr = next(i for i, r in enumerate(self.listbox) if r.get_child() == row)
@@ -198,18 +198,32 @@ class GradeTable:
             pass
 
     def delete_row(self, widget, id: int):
-        for child in self.listbox.get_children()[2:]:
-            if child.get_child().id == id:
-                self.listbox.remove(child)
+        # Skip the first two rows as they are headers
+        current_row = (
+            self.listbox.get_first_child().get_next_sibling().get_next_sibling()
+        )
+        while current_row is not None:
+            next_row = current_row.get_next_sibling()
+            if current_row.get_child().id == id:
+                self.listbox.remove(current_row)
                 break
+            current_row = next_row
+
         pos = next(i for i, e in enumerate(self.entries) if e[0].id == id)
         del self.entries[pos]
         self.entry_changed_cb()
 
     def clear_rows(self):
         self.entries.clear()
-        for child in self.listbox.get_children()[2:]:
-            self.listbox.remove(child)
+
+        # First two items are header and seperator
+        current_row = (
+            self.listbox.get_first_child().get_next_sibling().get_next_sibling()
+        )
+        while current_row is not None:
+            next_row = current_row.get_next_sibling()
+            self.listbox.remove(current_row)
+            current_row = next_row
 
     def add_clicked(self, id: str, first_name: str, surname: str, attempts: int):
         zero_points = [Taskpoint(task.id, 0.0) for task in self.tasks]
@@ -318,7 +332,7 @@ class GradeTable:
         return next(e[0] for e in self.entries if e[0].id == id)
 
 
-@Gtk.Template(resource_path="/exam-grader/Add_Grading_Row.glade")
+@Gtk.Template(resource_path="/exam-grader/Add_Grading_Row.ui")
 class AddGradingRow(Gtk.Box):
     __gtype_name__ = "add_grading_row"
     id_entry = Gtk.Template.Child("id_entry")
@@ -365,7 +379,7 @@ class AddGradingRow(Gtk.Box):
         self.clear()
 
 
-@Gtk.Template(resource_path="/exam-grader/Grading_Row.glade")
+@Gtk.Template(resource_path="/exam-grader/Grading_Row.ui")
 class GradingRow(Gtk.Box):
     __gtype_name__ = "grading_row"
 
@@ -407,12 +421,17 @@ class GradingRow(Gtk.Box):
 
         self.delete_button.connect("clicked", row_deleted_cb, self.id)
 
+        combo_entry = self.state_combo.get_child()
+        combo_entry.set_hexpand(False)
+        combo_entry.set_hexpand_set(True)
+        combo_entry.set_max_width_chars(3)
         self.state_combo.set_model(examstates)
         self.state_combo.set_active(self.student.grade_type)
 
         self.state_combo.connect("changed", self.on_combo_change)
         # Disable the Mouse scroll, to avoid unintentional changes
-        self.state_combo.connect("scroll_event", empty_cb)
+        # TODO
+        # self.state_combo.connect("scroll_event", empty_cb)
 
         self.point_entries = {}
 
@@ -425,10 +444,9 @@ class GradingRow(Gtk.Box):
             taskpoint_entry = self.new_entry(t.id, points, t.max_points)
             taskpoint_entry.connect("activate", self.next_entry_grab_focus, t.id)
             self.point_entries[t.id] = taskpoint_entry
-            self.task_point_area.add(taskpoint_entry)
+            self.task_point_area.append(taskpoint_entry)
 
         self.set_dim_entries(not (self.student.grade_type.is_counted()))
-        self.task_point_area.show_all()
 
     def next_entry_grab_focus(self, widget, data):
         next_entry = None
@@ -451,6 +469,11 @@ class GradingRow(Gtk.Box):
         taskpoint_entry = Gtk.Entry()
         taskpoint_entry.set_size_request(90, -1)
         taskpoint_entry.set_placeholder_text("0.0")
+        taskpoint_entry.set_hexpand(False)
+        taskpoint_entry.set_hexpand_set(True)
+        taskpoint_entry.set_vexpand(False)
+        taskpoint_entry.set_vexpand_set(True)
+        taskpoint_entry.set_max_width_chars(5)
         taskpoint_entry.set_alignment(0.5)
         taskpoint_entry.set_width_chars(3)
         taskpoint_entry.set_text(str(points))
@@ -477,7 +500,7 @@ class GradingRow(Gtk.Box):
             if self.point_entries.get(t.id) is None:
                 new_e = self.new_entry(t.id, self.student.points[t.id], t.max_points)
                 self.point_entries[t.id] = new_e
-                self.task_point_area.add(new_e)
+                self.task_point_area.append(new_e)
 
         self.task_point_area.show_all()
         new_vals = self.student.recalculate_points_and_grade()

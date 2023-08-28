@@ -2,9 +2,9 @@ import base64
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Callable, Dict, List, Optional
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from gi.repository import Gtk
@@ -80,174 +80,115 @@ def decrypt_exam_json(encrypted: Dict["str", Any], password: str) -> Dict["str",
     return decrypted
 
 
-def save_exam(
-    parent_window,
-    examname: str,
-    examdate: str,
-    point_table: PointTable,
-    grading: GradeTable,
-    tasks: List[ExamTask],
-    lastpath: Optional[str],
-):
-    file_choose_dialog = Gtk.FileChooserDialog(
-        "Save File",
-        parent_window,
-        Gtk.FileChooserAction.SAVE,
-        (
-            Gtk.STOCK_CANCEL,
-            Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OPEN,
-            Gtk.ResponseType.OK,
-        ),
-    )
-    exam_file_filter = Gtk.FileFilter()
-    exam_file_filter.set_name("Exam Grading Files")
-    exam_file_filter.add_pattern("*.examgrades")
-    file_choose_dialog.add_filter(exam_file_filter)
-    # all_files_filter = Gtk.FileFilter()
-    # all_files_filter.set_name("All Files")
-    # all_files_filter.add_pattern("*")
-    if lastpath is not None:
-        file_choose_dialog.set_current_folder(lastpath)
-    file_choose_dialog.set_current_name(f"{examname}.examgrades")
-
-    ok_butt = file_choose_dialog.get_widget_for_response(Gtk.ResponseType.OK)
-    ok_butt.set_label("Save")
-    ok_butt.get_style_context().add_class("suggested-action")
-
-    file_choose_dialog.get_widget_for_response(
-        Gtk.ResponseType.OK
-    ).get_style_context().add_class("suggested-action")
-
-    response = file_choose_dialog.run()
-    if response == Gtk.ResponseType.OK:
-        filepath = Path(file_choose_dialog.get_filename())
-        file_choose_dialog.destroy()
-
-        if filepath.exists():
-            warn_dialog = Gtk.MessageDialog(
-                parent_window,
-                Gtk.DialogFlags.MODAL
-                | Gtk.DialogFlags.DESTROY_WITH_PARENT
-                | Gtk.DialogFlags.USE_HEADER_BAR,
-                type=Gtk.MessageType.WARNING,
-                buttons=Gtk.ButtonsType.OK_CANCEL,
-                message_format="File exists. Overwrite?",
-            )
-            warn_dialog.get_widget_for_response(
-                response_id=Gtk.ResponseType.OK
-            ).get_style_context().add_class("destructive-action")
-            response = warn_dialog.run()
-            warn_dialog.destroy()
-            if response != Gtk.ResponseType.OK:
-                return
-        lastpath = str(filepath.parent)
-
-        pwd_dialog = SavePwdDialog(parent_window)
-        response = pwd_dialog.run()
-
-        passwd = None
-
-        if response == Gtk.ResponseType.OK:
-            passwd = pwd_dialog.pwd_entry.get_text()
-        elif response == Gtk.ResponseType.CANCEL:
-            pwd_dialog.destroy()
-            file_choose_dialog.destroy()
-            return
-
-        pwd_dialog.destroy()
-        save_content = create_save_content(
-            examname, examdate, point_table, grading, tasks, passwd
-        )
-        with filepath.open("w") as savefile:
-            savefile.write(json.dumps(save_content, indent=4, sort_keys=True))
-
-    else:
-        file_choose_dialog.destroy()
+def decrypt_exam(exam: Dict[str, Any], pwd: str) -> Optional[Dict[str, Any]]:
+    try:
+        decrypted_exam = decrypt_exam_json(exam, password=pwd)
+        return decrypted_exam
+    except InvalidToken:
+        return None
 
 
-@Gtk.Template(resource_path="/exam-grader/Save_Pwd_Dialog.glade")
-class SavePwdDialog(Gtk.MessageDialog):
-    __gtype_name__ = "save_pwd_dialog"
+@Gtk.Template(resource_path="/exam-grader/Encrypt_Dialog.ui")
+class EncryptDialog(Gtk.Window):
+    __gtype_name__ = "encrypt_dialog"
 
     pwd_entry = Gtk.Template.Child("pwd_entry")
-    save_button = Gtk.Template.Child("save_button")
+    save_encrypt_button = Gtk.Template.Child("save_encrypt_button")
 
-    def __init__(self, parent):
-        super(Gtk.MessageDialog, self).__init__()
+    def __init__(self, parent, callback: Callable[[str], None], filepath: Path):
+        super(Gtk.Window, self).__init__()
         self.set_transient_for(parent)
         self.set_modal(parent)
+        self.callback = callback
+        self.filepath = filepath
 
     @Gtk.Template.Callback()
-    def on_save_clicked(self, widget):
-        self.response(Gtk.ResponseType.OK)
+    def on_save_encr_clicked(self, widget):
+        if self.pwd_entry.get_text() != "":
+            self.destroy()
+            self.callback(self.filepath, self.pwd_entry.get_text())
 
     @Gtk.Template.Callback()
     def on_cancel_clicked(self, widget):
-        self.response(Gtk.ResponseType.CANCEL)
+        self.destroy()
 
     @Gtk.Template.Callback()
     def on_no_encr_clicked(self, widget):
-        self.response(Gtk.ResponseType.REJECT)
+        self.destroy()
+        self.callback(self.filepath, None)
 
     @Gtk.Template.Callback()
     def on_pwd_changed(self, widget):
         if self.pwd_entry.get_text() != "":
-            self.save_button.set_sensitive(True)
+            self.save_encrypt_button.set_sensitive(True)
         else:
-            self.save_button.set_sensitive(False)
+            self.save_encrypt_button.set_sensitive(False)
 
     @Gtk.Template.Callback()
-    def on_show_pwd_pressed(self, widget, icon_type, event):
+    def on_show_pwd_pressed(self, widget, icon_type):
         self.pwd_entry.set_visibility(True)
 
     @Gtk.Template.Callback()
-    def on_show_pwd_released(self, widget, icon_type, event):
+    def on_show_pwd_released(self, widget, icon_type):
         self.pwd_entry.set_visibility(False)
 
 
-@Gtk.Template(resource_path="/exam-grader/Decrypt_Dialog.glade")
-class DecryptDialog(Gtk.MessageDialog):
+@Gtk.Template(resource_path="/exam-grader/Decrypt_Dialog.ui")
+class DecryptDialog(Gtk.Window):
     __gtype_name__ = "decrypt_dialog"
 
     pwd_entry = Gtk.Template.Child("pwd_entry")
-    open_button = Gtk.Template.Child("open_button")
+    decrypt_button = Gtk.Template.Child("decrypt_button")
 
-    def __init__(self, parent):
-        super(Gtk.MessageDialog, self).__init__()
+    def __init__(
+        self,
+        parent,
+        encrypted_data: Any,
+        decrypt_fn: Callable[[Any, str], Optional[Any]],
+        success_callback: Callable[[Any], None],
+    ):
+        super(Gtk.Window, self).__init__()
         self.set_transient_for(parent)
         self.set_modal(parent)
 
         error_label = Gtk.Label(label="Incorrect passwort")
         error_label.set_margin_start(5)
         error_label.set_margin_end(5)
-        self.error_popover = Gtk.Popover.new(self.pwd_entry)
-        self.error_popover.add(error_label)
-        self.error_popover.set_modal(True)
-        self.error_popover.show_all()
+        self.error_popover = Gtk.Popover.new()
+        self.error_popover.set_parent(self.pwd_entry)
+        self.error_popover.set_child(error_label)
+
+        self.encrypted_data = encrypted_data
+        self.decrypt_fn = decrypt_fn
+        self.success_callback = success_callback
 
     @Gtk.Template.Callback()
     def on_open_clicked(self, widget):
-        self.response(Gtk.ResponseType.OK)
+        decrypted = self.decrypt_fn(self.encrypted_data, self.pwd_entry.get_text())
+        if decrypted is not None:
+            self.destroy()
+            self.success_callback(decrypted)
+        else:
+            self.highlight_incorrect_pwd()
 
     @Gtk.Template.Callback()
     def on_cancel_clicked(self, widget):
-        self.response(Gtk.ResponseType.CANCEL)
+        self.destroy()
 
     @Gtk.Template.Callback()
     def on_pwd_changed(self, widget):
         self.error_popover.popdown()
         if self.pwd_entry.get_text() != "":
-            self.open_button.set_sensitive(True)
+            self.decrypt_button.set_sensitive(True)
         else:
-            self.open_button.set_sensitive(False)
+            self.decrypt_button.set_sensitive(False)
 
     @Gtk.Template.Callback()
-    def on_show_pwd_pressed(self, widget, icon_type, event):
+    def on_show_pwd_pressed(self, widget, icon_type):
         self.pwd_entry.set_visibility(True)
 
     @Gtk.Template.Callback()
-    def on_show_pwd_released(self, widget, icon_type, event):
+    def on_show_pwd_released(self, widget, icon_type):
         self.pwd_entry.set_visibility(False)
 
     def highlight_incorrect_pwd(self):

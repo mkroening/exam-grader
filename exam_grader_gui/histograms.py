@@ -1,7 +1,7 @@
 from typing import Collection, Dict, List, Optional, Union
 
 import matplotlib
-from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
+from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 
@@ -53,9 +53,9 @@ class Histogram:
         self.canvas = FigureCanvas(mplfigure)
         self.canvas.set_size_request(400, 200)
         if viewport:
-            area.add_with_viewport(self.canvas)
+            area.set_child(self.canvas)
         else:
-            area.add(self.canvas)
+            area.append(self.canvas)
 
     def draw(self) -> None:
         if self.with_boxplot:

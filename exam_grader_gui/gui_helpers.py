@@ -1,12 +1,10 @@
 import os
 import subprocess
 import sys
-from collections import deque
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional, Tuple
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gio, Gtk
 
 
 def get_content(
@@ -59,11 +57,12 @@ def get_content_list(entry, target_type):
 
 
 def show_about_dialog(parent):
-    builder = Gtk.Builder.new_from_resource("/exam-grader/About.glade")
+    builder = Gtk.Builder.new_from_resource("/exam-grader/About.ui")
     dialog = builder.get_object("about")
     dialog.set_transient_for(parent)
-    dialog.run()
-    dialog.destroy()
+    logo = Gdk.Texture.new_from_resource("/exam-grader/assets/exam.svg")
+    dialog.set_logo(logo)
+    dialog.present()
 
 
 def open_file(filename):
@@ -79,18 +78,45 @@ def open_file(filename):
 
 
 def successful_with_open_folder_dialog(parent_window, message: str, path: Path):
-    dialog = Gtk.MessageDialog(
-        parent_window,
-        Gtk.DialogFlags.MODAL
-        | Gtk.DialogFlags.DESTROY_WITH_PARENT
-        | Gtk.DialogFlags.USE_HEADER_BAR,
-        Gtk.MessageType.INFO,
-        Gtk.ButtonsType.OK,
-        message,
-    )
-    dialog.add_button("Open Folder", 42)
-    dialog.show_all()
-    response = dialog.run()
-    if response == 42:
+    dialog = Gtk.AlertDialog()
+    dialog.set_message(message)
+    dialog.set_buttons(["Open Folder", "Ok"])
+    dialog.set_cancel_button(1)
+    dialog.set_default_button(1)
+    dialog.choose(parent_window, None, perform_open_folder, None, path)
+
+
+def perform_open_folder(source_obj, async_res, error, path):
+    result = source_obj.choose_finish(async_res)
+    if result == 0:
         open_file(path)
-    dialog.destroy()
+
+
+def create_file_dialog(
+    parent,
+    title: str,
+    lastpath: Optional[Tuple[str, Gio.File, Path]],
+    filters: List[Tuple[str, str]] = [
+        ("Exam Grading Files", "*.examgrades"),
+        ("All Files", "*"),
+    ],
+) -> Gtk.FileDialog:
+    file_choose_dialog = Gtk.FileDialog()
+    file_choose_dialog.set_title(title)
+
+    file_filters = Gio.ListStore.new(Gtk.FileFilter)
+    for name, pattern in filters:
+        filter = Gtk.FileFilter()
+        filter.set_name(name)
+        filter.add_pattern(pattern)
+        file_filters.append(filter)
+    file_choose_dialog.set_filters(file_filters)
+
+    if isinstance(lastpath, Gio.File):
+        file_choose_dialog.set_initial_folder(lastpath)
+    elif isinstance(lastpath, str):
+        file_choose_dialog.set_initial_folder(Gio.File.new_for_path(lastpath))
+    elif isinstance(lastpath, Path):
+        file_choose_dialog.set_initial_folder(Gio.File.new_for_path(str(lastpath)))
+
+    return file_choose_dialog

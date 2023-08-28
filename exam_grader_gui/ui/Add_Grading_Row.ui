@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Add_Grading_Row.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <template class="add_grading_row" parent="GtkBox">
+    <property name="halign">center</property>
+    <property name="margin-bottom">5</property>
+    <property name="margin-top">5</property>
+    <property name="valign">center</property>
+    <child>
+      <object class="GtkEntry" id="id_entry">
+        <property name="focusable">1</property>
+        <property name="placeholder-text" translatable="yes">Student ID</property>
+        <property name="width-request">100</property>
+        <property name="xalign">0.5</property>
+        <signal name="changed" handler="on_entry_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="first_name_entry">
+        <property name="focusable">1</property>
+        <property name="placeholder-text" translatable="yes">First Name</property>
+        <property name="width-request">170</property>
+        <property name="xalign">0.5</property>
+        <signal name="changed" handler="on_entry_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="surname_entry">
+        <property name="focusable">1</property>
+        <property name="placeholder-text" translatable="yes">Surname</property>
+        <property name="width-request">170</property>
+        <property name="xalign">0.5</property>
+        <signal name="changed" handler="on_entry_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="attempts_entry">
+        <property name="focusable">1</property>
+        <property name="input-purpose">digits</property>
+        <property name="placeholder-text" translatable="yes">Attempt</property>
+        <property name="width-chars">3</property>
+        <property name="width-request">75</property>
+        <property name="xalign">0.5</property>
+        <signal name="activate" handler="on_activate"/>
+        <signal name="changed" handler="on_entry_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="add_button">
+        <property name="focusable">1</property>
+        <property name="icon-name">list-add-symbolic</property>
+        <property name="label" translatable="yes">Add</property>
+        <property name="receives-default">1</property>
+        <property name="sensitive">0</property>
+        <property name="tooltip-text" translatable="yes">Add a student with the entered properties</property>
+        <signal name="clicked" handler="on_add_clicked"/>
+      </object>
+    </child>
+    <style>
+      <class name="linked"/>
+    </style>
+  </template>
+</interface>

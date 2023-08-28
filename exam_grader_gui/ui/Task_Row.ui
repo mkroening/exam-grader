@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Task_Row.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <template class="task_row" parent="GtkBox">
+    <property name="halign">center</property>
+    <property name="valign">center</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="child">
+          <object class="GtkViewport">
+            <property name="child">
+              <object class="GtkLabel" id="taskname_label">
+                <property name="xalign">0</property>
+              </object>
+            </property>
+          </object>
+        </property>
+        <property name="focusable">1</property>
+        <property name="halign">center</property>
+        <property name="width-request">220</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="points_label">
+        <property name="width-request">80</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="remove_button">
+        <property name="focusable">1</property>
+        <property name="halign">center</property>
+        <property name="icon-name">user-trash-symbolic</property>
+        <property name="receives-default">1</property>
+        <property name="valign">center</property>
+        <property name="width-request">50</property>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

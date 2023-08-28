@@ -1,0 +1,1461 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.12.1 -->
+<interface>
+  <!-- interface-name Main_Window.ui -->
+  <requires lib="gtk" version="4.10"/>
+  <template class="main_window" parent="GtkApplicationWindow">
+    <property name="child">
+      <object class="GtkOverlay">
+        <property name="child">
+          <object class="GtkStack" id="main_stack">
+            <signal name="notify::visible-child-name" handler="main_visible_child_changed"/>
+            <child>
+              <object class="GtkStackPage" id="exam_page">
+                <property name="child">
+                  <object class="GtkGrid" id="exam_page_grid">
+                    <property name="column-spacing">15</property>
+                    <property name="halign">center</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="margin-end">5</property>
+                    <property name="margin-start">5</property>
+                    <property name="margin-top">5</property>
+                    <property name="row-spacing">10</property>
+                    <child>
+                      <object class="GtkLabel" id="GeneralHeading">
+                        <property name="label">General:</property>
+                        <style>
+                          <class name="title-3"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="column-span">2</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="ExamnameLabel">
+                        <property name="halign">start</property>
+                        <property name="label">Examname</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="DateLabel">
+                        <property name="halign">start</property>
+                        <property name="label">Date</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="child">
+                          <object class="GtkViewport">
+                            <property name="child">
+                              <object class="GtkListBox" id="task_list">
+                                <property name="hexpand">True</property>
+                                <property name="selection-mode">none</property>
+                                <child>
+                                  <object class="GtkListBoxRow">
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="halign">center</property>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="halign">start</property>
+                                            <property name="label">Task Name</property>
+                                            <property name="width-request">220</property>
+                                            <property name="xalign">0.0</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="label">Max Points</property>
+                                            <property name="width-request">80</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="width-request">50</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkSeparator"/>
+                                </child>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
+                        <property name="has-frame">True</property>
+                        <property name="min-content-height">300</property>
+                        <property name="vexpand">True</property>
+                        <property name="vexpand-set">True</property>
+                        <property name="width-request">500</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="column-span">2</property>
+                          <property name="row">4</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="examdate_button">
+                        <property name="child">
+                          <object class="GtkLabel" id="examdate_button_label">
+                            <property name="label">&lt;Select&gt;</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-start">5</property>
+                          </object>
+                        </property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <signal name="clicked" handler="on_examdate_clicked"/>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="TasksHeading">
+                        <property name="label">Tasks:</property>
+                        <style>
+                          <class name="title-3"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="column-span">2</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="examname_entry">
+                        <property name="hexpand">True</property>
+                        <property name="placeholder-text">MyExam</property>
+                        <signal name="changed" handler="on_examname_changed"/>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="name">exam_page</property>
+                <property name="title">Exam</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage" id="grading_page">
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="halign">center</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="margin-end">5</property>
+                    <property name="margin-start">5</property>
+                    <property name="margin-top">5</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="halign">center</property>
+                        <property name="margin-bottom">5</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="valign">start</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Passing from</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Stepsize</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">Grading Table:</property>
+                            <property name="margin-bottom">5</property>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="column-span">2</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="passing_spin_but">
+                            <property name="adjustment">passing_adjustment</property>
+                            <property name="digits">2</property>
+                            <property name="focusable">1</property>
+                            <property name="halign">start</property>
+                            <property name="numeric">1</property>
+                            <property name="text" translatable="yes">10.00</property>
+                            <property name="value">10</property>
+                            <property name="width-chars">5</property>
+                            <property name="xalign">0.5</property>
+                            <signal name="value-changed" handler="on_gradetable_changed"/>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="stepsize_spin_but">
+                            <property name="adjustment">grade_stepsize_adjustment</property>
+                            <property name="digits">2</property>
+                            <property name="focusable">1</property>
+                            <property name="halign">start</property>
+                            <property name="numeric">1</property>
+                            <property name="text" translatable="yes">1.00</property>
+                            <property name="value">1</property>
+                            <property name="width-chars">5</property>
+                            <property name="xalign">0.5</property>
+                            <signal name="value-changed" handler="on_gradetable_changed"/>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator">
+                            <property name="margin-bottom">5</property>
+                            <property name="margin-top">5</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="column-span">2</property>
+                              <property name="row">3</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkListBox" id="point_table">
+                            <property name="halign">center</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-start">5</property>
+                            <property name="margin-top">5</property>
+                            <property name="selection-mode">none</property>
+                            <property name="valign">start</property>
+                            <property name="width-request">350</property>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">Grade</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">From</property>
+                                        <property name="margin-bottom">5</property>
+                                        <property name="margin-top">5</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">To</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">Count</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-start">2</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkSeparator"/>
+                                </property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">1.0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.0_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.0_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.0_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">1.3</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.3_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.3_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.3_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">1.7</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.7_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.7_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="1.7_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">2.0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.0_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.0_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.0_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">2.3</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.3_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.3_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.3_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">2.7</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.7_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.7_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="2.7_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">3.0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.0_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.0_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.0_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">3.3</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.3_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.3_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.3_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">3.7</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.7_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.7_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="3.7_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">4.0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="4.0_from">
+                                        <property name="label" translatable="yes">X</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="4.0_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="4.0_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="activatable">0</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="homogeneous">1</property>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="label" translatable="yes">5.0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="5.0_from">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="5.0_to">
+                                        <property name="label" translatable="yes">Y</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="5.0_count">
+                                        <property name="label" translatable="yes">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="margin-bottom">5</property>
+                                <property name="margin-top">5</property>
+                                <property name="selectable">0</property>
+                              </object>
+                            </child>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="column-span">2</property>
+                              <property name="row">4</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="column-spacing">10</property>
+                        <property name="halign">center</property>
+                        <property name="margin-bottom">5</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="row-spacing">5</property>
+                        <property name="valign">start</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">Statistics:</property>
+                            <property name="margin-bottom">5</property>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="column-span">2</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Students passed:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Grade average:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">9</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Grade average (passed):</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">10</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Grade median:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">11</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Points median:</property>
+                            <property name="margin-bottom">10</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">7</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Best grade:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">8</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="passed_label">
+                            <property name="label" translatable="yes">0</property>
+                            <property name="width-request">100</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="perc_fail_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">3</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="avg_grade_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">9</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="avg_grade_passed_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">10</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="grade_median_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">11</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="points_median_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">7</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="best_grade_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">8</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Percentage failed:</property>
+                            <property name="margin-bottom">10</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">3</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Participants:</property>
+                            <property name="tooltip-text" translatable="yes">Number of participants that submitted an exam</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="participants_label">
+                            <property name="label" translatable="yes">0</property>
+                            <property name="width-request">100</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Points average:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">5</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="points_average_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">5</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Points max:</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">4</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="points_max_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">4</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="points_average_passed_label">
+                            <property name="label" translatable="yes">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">6</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Points average (passed):</property>
+                            <property name="width-request">150</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">6</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="halign">start</property>
+                        <property name="hexpand">1</property>
+                        <property name="homogeneous">1</property>
+                        <property name="margin-bottom">5</property>
+                        <property name="margin-end">10</property>
+                        <property name="margin-start">10</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">10</property>
+                        <property name="vexpand">1</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">1</property>
+                            <property name="vexpand-set">True</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="halign">start</property>
+                                <property name="label" translatable="yes">Histogram Grades:</property>
+                                <property name="margin-bottom">5</property>
+                                <style>
+                                  <class name="title-3"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScrolledWindow" id="histogram_area">
+                                <property name="focusable">1</property>
+                                <property name="min-content-height">200</property>
+                                <property name="min-content-width">300</property>
+                                <property name="propagate-natural-height">1</property>
+                                <property name="propagate-natural-width">1</property>
+                                <property name="vexpand">1</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="vexpand">1</property>
+                            <property name="vexpand-set">True</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="halign">start</property>
+                                <property name="label" translatable="yes">Histogram Points:</property>
+                                <property name="margin-bottom">5</property>
+                                <style>
+                                  <class name="title-3"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScrolledWindow" id="point_histogram_area">
+                                <property name="focusable">1</property>
+                                <property name="min-content-height">200</property>
+                                <property name="min-content-width">300</property>
+                                <property name="propagate-natural-height">1</property>
+                                <property name="propagate-natural-width">1</property>
+                                <property name="vexpand">1</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="name">grading_page</property>
+                <property name="title">Grading</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage" id="results_page">
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkScrolledWindow" id="grading_table">
+                        <property name="child">
+                          <object class="GtkViewport" id="viewport1">
+                            <property name="child">
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkListBox" id="grading_tabl">
+                                    <property name="halign">center</property>
+                                    <property name="hexpand">1</property>
+                                    <property name="selection-mode">none</property>
+                                    <property name="vexpand">1</property>
+                                    <child>
+                                      <object class="GtkListBoxRow" id="header_row1">
+                                        <property name="activatable">0</property>
+                                        <property name="child">
+                                          <object class="GtkBox">
+                                            <property name="spacing">5</property>
+                                            <child>
+                                              <object class="GtkLabel" id="student_id_label">
+                                                <property name="halign">center</property>
+                                                <property name="label" translatable="yes">Student ID</property>
+                                                <property name="width-request">100</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="first_name_label">
+                                                <property name="halign">center</property>
+                                                <property name="label" translatable="yes">First Name</property>
+                                                <property name="width-request">150</property>
+                                                <property name="xalign">0</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="surname_label">
+                                                <property name="halign">center</property>
+                                                <property name="label" translatable="yes">Surname</property>
+                                                <property name="width-request">150</property>
+                                                <property name="xalign">0</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="trials_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Attempt</property>
+                                                <property name="width-request">60</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="state_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">State</property>
+                                                <property name="width-request">90</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkSeparator" id="s1"/>
+                                            </child>
+                                            <child>
+                                              <object class="GtkBox" id="task_label_box">
+                                                <property name="spacing">5</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="additional_points_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Additional
+Points</property>
+                                                <property name="margin-start">10</property>
+                                                <property name="width-request">90</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkSeparator" id="s2"/>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="total_points_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Total
+Points</property>
+                                                <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
+                                                <property name="width-request">60</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="total_points_final_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Total Points
+(final)</property>
+                                                <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
+                                                <property name="width-request">80</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="grade_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Grade</property>
+                                                <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points"</property>
+                                                <property name="width-request">60</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="grade_final_label">
+                                                <property name="halign">center</property>
+                                                <property name="justify">center</property>
+                                                <property name="label" translatable="yes">Grade
+(final)</property>
+                                                <property name="tooltip-text" translatable="yes">Grade determined from  "Total Points (final)"</property>
+                                                <property name="width-request">60</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkButton" id="delete_button">
+                                                <property name="receives-default">1</property>
+                                                <property name="sensitive">0</property>
+                                                <property name="visible">0</property>
+                                                <style>
+                                                  <class name="flat"/>
+                                                </style>
+                                              </object>
+                                            </child>
+                                          </object>
+                                        </property>
+                                        <property name="selectable">0</property>
+                                        <property name="sensitive">0</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkListBoxRow">
+                                        <property name="activatable">0</property>
+                                        <property name="child">
+                                          <object class="GtkSeparator"/>
+                                        </property>
+                                        <property name="selectable">0</property>
+                                        <property name="sensitive">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-start">5</property>
+                          </object>
+                        </property>
+                        <property name="focusable">1</property>
+                        <property name="min-content-height">200</property>
+                        <property name="min-content-width">900</property>
+                        <property name="propagate-natural-height">1</property>
+                        <property name="propagate-natural-width">1</property>
+                        <property name="vexpand">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCenterBox" id="grading_table_box">
+                        <property name="hexpand">True</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-start">5</property>
+                        <child type="start">
+                          <object class="GtkEntry" id="row_filter_entry">
+                            <property name="focusable">1</property>
+                            <property name="halign">center</property>
+                            <property name="placeholder-text" translatable="yes">Filter Rows</property>
+                            <property name="secondary-icon-name">edit-clear</property>
+                            <property name="secondary-icon-sensitive">0</property>
+                            <property name="valign">center</property>
+                            <signal name="changed" handler="on_filter_changed"/>
+                            <signal name="icon-press" handler="on_filter_clear"/>
+                          </object>
+                        </child>
+                        <child type="end">
+                          <object class="GtkBox" id="sort_combo_box">
+                            <property name="halign">center</property>
+                            <property name="spacing">10</property>
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Sort by:</property>
+                                <property name="margin-end">10</property>
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkComboBox" id="sort_key_combo">
+                                <property name="active">0</property>
+                                <property name="entry-text-column">0</property>
+                                <property name="halign">end</property>
+                                <property name="has-entry">1</property>
+                                <property name="id-column">0</property>
+                                <property name="valign">center</property>
+                                <signal name="changed" handler="on_sort_key_changed"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="name">results_page</property>
+                <property name="title" translatable="yes">Results</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage" id="graphs_page">
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="homogeneous">1</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-top">5</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Exam statistics:</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="xalign">0</property>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="child">
+                              <object class="GtkViewport">
+                                <property name="child">
+                                  <object class="GtkBox" id="statistics">
+                                    <property name="homogeneous">1</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                            <property name="focusable">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="propagate-natural-height">1</property>
+                            <property name="propagate-natural-width">1</property>
+                            <property name="vexpand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Task statistics:</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="xalign">0</property>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="child">
+                              <object class="GtkViewport">
+                                <property name="child">
+                                  <object class="GtkBox" id="task_diagram_box">
+                                    <property name="homogeneous">1</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                            <property name="focusable">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="vexpand">1</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="name">graphs_page</property>
+                <property name="title" translatable="yes">Graphs</property>
+              </object>
+            </child>
+          </object>
+        </property>
+        <child type="overlay">
+          <object class="GtkRevealer" id="processing_revealer">
+            <property name="can-target">0</property>
+            <property name="child">
+              <object class="GtkSpinner">
+                <property name="halign">center</property>
+                <property name="height-request">300</property>
+                <property name="sensitive">0</property>
+                <property name="valign">center</property>
+                <property name="width-request">300</property>
+              </object>
+            </property>
+            <property name="halign">center</property>
+            <property name="reveal-child">1</property>
+            <property name="sensitive">0</property>
+            <property name="transition-type">none</property>
+            <property name="valign">center</property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="default-height">800</property>
+    <property name="default-width">1200</property>
+    <property name="height-request">750</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar" id="header">
+        <child type="end">
+          <object class="GtkMenuButton" id="examtable_menu_button">
+            <property name="focus-on-click">0</property>
+            <property name="focusable">1</property>
+            <property name="icon-name">open-menu-symbolic</property>
+            <property name="popover">help_menu_popover</property>
+            <property name="primary">True</property>
+            <property name="receives-default">1</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkBox">
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkButton" id="csv_import_button">
+                <property name="icon-name">document-import-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Import from CSV  &lt;span style="italic"&gt;- CTRL + I&lt;/span&gt;</property>
+                <signal name="clicked" handler="on_csv_import_clicked"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="export_button">
+                <property name="icon-name">document-export-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Export grades as CSV &lt;span style="italic"&gt;- CTRL + E&lt;/span&gt;</property>
+                <signal name="clicked" handler="on_csv_export_clicked"/>
+              </object>
+            </child>
+            <style>
+              <class name="linked"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkButton" id="new_button">
+                <property name="icon-name">document-new-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Start a new session &lt;span style="italic"&gt;- CTRL + N&lt;/span&gt;</property>
+                <signal name="clicked" handler="on_clear_clicked"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="open_button">
+                <property name="icon-name">document-open-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Open Examgrading file  &lt;span style="italic"&gt;- CTRL + O&lt;/span&gt;</property>
+                <signal name="clicked" handler="open"/>
+                <style/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="save_button">
+                <property name="icon-name">document-save-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Save exam grading  &lt;span style="italic"&gt;- CTRL + S&lt;/span&gt;</property>
+                <signal name="clicked" handler="on_save_clicked"/>
+                <style/>
+              </object>
+            </child>
+            <style>
+              <class name="linked"/>
+            </style>
+          </object>
+        </child>
+        <child type="title">
+          <object class="GtkStackSwitcher" id="main_stack_switcher">
+            <property name="stack">main_stack</property>
+            <property name="width-request">100</property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="width-request">1075</property>
+    <signal name="close-request" handler="quit_with_confirmation"/>
+  </template>
+  <object class="GtkAdjustment" id="grade_stepsize_adjustment">
+    <property name="page-increment">10</property>
+    <property name="step-increment">0.5</property>
+    <property name="upper">100</property>
+    <property name="value">1</property>
+  </object>
+  <object class="GtkPopover" id="help_menu_popover">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkCheckButton" id="grade_separators_checkbox">
+            <property name="active">1</property>
+            <property name="focusable">1</property>
+            <property name="label" translatable="yes">Grade separators</property>
+            <property name="tooltip-text" translatable="yes">Show separator lines in the point histogram</property>
+            <signal name="toggled" handler="on_grade_sep_toggle"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="patch_csv_button">
+            <property name="focusable">1</property>
+            <property name="label" translatable="yes">Patch CSV</property>
+            <property name="receives-default">1</property>
+            <property name="tooltip-text" translatable="yes">Patch an existing CSV with the results of the exam.</property>
+            <signal name="clicked" handler="on_csv_patch_clicked"/>
+            <style>
+              <class name="flat"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="about_button">
+            <property name="focusable">1</property>
+            <property name="label" translatable="yes">About</property>
+            <property name="receives-default">1</property>
+            <signal name="clicked" handler="on_about_clicked"/>
+            <style>
+              <class name="flat"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="width-request">150</property>
+  </object>
+  <object class="GtkAdjustment" id="passing_adjustment">
+    <property name="page-increment">10</property>
+    <property name="step-increment">0.5</property>
+    <property name="upper">10000</property>
+    <property name="value">10</property>
+  </object>
+</interface>

@@ -1,0 +1,14 @@
+#failable_entry.red {
+    background: @error_color;
+}
+
+progress {
+    border-bottom-color: @success_color;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: -1px;
+}
+
+.warning {
+    color: @warning_color;
+}
