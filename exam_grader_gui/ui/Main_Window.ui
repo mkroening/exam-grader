@@ -109,24 +109,6 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="examdate_button">
-                        <property name="child">
-                          <object class="GtkLabel" id="examdate_button_label">
-                            <property name="label">&lt;Select&gt;</property>
-                            <property name="margin-end">5</property>
-                            <property name="margin-start">5</property>
-                          </object>
-                        </property>
-                        <property name="halign">center</property>
-                        <property name="valign">center</property>
-                        <signal name="clicked" handler="on_examdate_clicked"/>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">2</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkLabel" id="TasksHeading">
                         <property name="label">Tasks:</property>
                         <style>
@@ -147,6 +129,26 @@
                         <layout>
                           <property name="column">1</property>
                           <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton" id="examdate_button">
+                        <property name="halign">end</property>
+                        <property name="label">&lt;select&gt;</property>
+                        <property name="popover">
+                          <object class="GtkPopover">
+                            <child>
+                              <object class="GtkCalendar">
+                                <signal name="day-selected" handler="on_examdate_clicked"/>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                        <property name="width-request">200</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
                         </layout>
                       </object>
                     </child>

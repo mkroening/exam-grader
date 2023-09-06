@@ -74,7 +74,6 @@ class MainWindow(Gtk.ApplicationWindow):
     points_max_label = Gtk.Template.Child("points_max_label")
     points_average_passed_label = Gtk.Template.Child("points_average_passed_label")
 
-    examdate_button_label = Gtk.Template.Child("examdate_button_label")
     examdate_button = Gtk.Template.Child("examdate_button")
     label_5_0_from = Gtk.Template.Child("5.0_from")
     label_4_0_from = Gtk.Template.Child("4.0_from")
@@ -537,8 +536,10 @@ class MainWindow(Gtk.ApplicationWindow):
     def on_examdate_clicked(self, widget):
         self.modified = True
         date = widget.get_date()
-        self.examdate = f"{date.year}-{date.month+1}-{date.day}"
-        self.examdate_button_label.set_text(self.examdate)
+        self.examdate = (
+            f"{date.get_year()}-{date.get_month()}-{date.get_day_of_month()}"
+        )
+        self.examdate_button.set_label(self.examdate)
         self.examdate_button.get_popover().popdown()
 
     @Gtk.Template.Callback()
@@ -862,9 +863,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.examname_entry.set_text(exam["General"]["Name"])
             self.examdate = exam["General"]["Date"]
             if self.examdate == "":
-                self.examdate_button_label.set_text("<Select>")
+                self.examdate_button.set_label("<Select>")
             else:
-                self.examdate_button_label.set_text(self.examdate)
+                self.examdate_button.set_label(self.examdate)
 
             for t in exam["Tasks"]:
                 self.add_task(
@@ -929,7 +930,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_buttons_sensitive(False)
         self.examname_entry.set_text("")
         self.examdate = ""
-        self.examdate_button_label.set_text("<Select>")
+        self.examdate_button.set_label("<Select>")
         self.grading.clear_rows()
         self.clear_tasks()
 
