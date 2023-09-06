@@ -1,7 +1,7 @@
 [project]
 
 name="exam-grader"
-version="0.0.1"
+version="0.2.0"
 # authors=["Jonathan Klimt <jonathan.klimt@rwth-aachen.de>"]
 # author_email="jonathan.klimt@rwth-aachen.de"
 description="Grade your exams"
