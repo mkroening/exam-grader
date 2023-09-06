@@ -78,8 +78,10 @@ class CsvImportDialog(Gtk.Window):
             file = file_dialog.open_finish(async_res)
             if file is not None:
                 self.csv_config.path = Path(file.get_path())
-                self.select_file_button.set_label(self.csv_config.path.parts[-1]
-)
+                filename = self.csv_config.path.parts[-1]
+                if len(filename) > 30:
+                    filename = filename[0:18] + "..." + filename[-10:-1]
+                self.select_file_button.set_label(filename)
 
             else:
                 return
