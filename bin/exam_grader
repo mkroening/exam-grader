@@ -4,19 +4,45 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
+gi.require_version("Adw", "1")
+
+import matplotlib.pyplot as plt
+from gi.repository import Adw, Gtk
 
 from exam_grader_gui import MainWindow
-from gi.repository import Gtk
 
-from exam_grader_gui import MainWindow
+win = None
+
 
 def on_activate(app):
-    # win = MainWindow()
+    global win
     win = MainWindow(application=app)
     win.present()
 
-app = Gtk.Application(application_id='edu.rwth.exam-grader')
-app.connect('activate', on_activate)
+
+def theme_style_changed(style_manager, parameter, app):
+    global win
+    if style_manager.get_dark():
+        plt.style.use("dark_background")
+    else:
+        plt.style.use("default")
+    if win is not None:
+        win.recreate_graphs()
+        win.redraw_visible_graphs()
+
+
+app = Adw.Application(application_id="edu.rwth.exam-grader")
+app.connect("activate", on_activate)
+
+
+settings = Gtk.Settings.get_default()
+style_mgr = Adw.StyleManager.get_default()
+style_mgr.connect("notify::dark", theme_style_changed, app)
+
+if settings.get_property("gtk-application-prefer-dark-theme") or style_mgr.get_dark():
+    plt.style.use("dark_background")
+else:
+    plt.style.use("default")
 
 # Run the application
 

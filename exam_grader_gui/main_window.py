@@ -113,9 +113,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, **kargs):
         super(Gtk.ApplicationWindow, self).__init__(**kargs)
 
-        settings = Gtk.Settings.get_default()
-        dark_mode = settings.get_property("gtk-application-prefer-dark-theme")
-
         self.task_list.append(AddTaskRow(self.add_task))
 
         shortcut_cont = Gtk.ShortcutController()
@@ -203,6 +200,27 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.g_histogram = self.grading.grade_histogram()
         self.p_histogram = self.grading.point_histogram()
+
+    def recreate_graphs(self):
+        clear_container(self.total_exam_stat, 0)
+        self.big_histogram = BigPointHistogram(
+            self.max_points,
+            self.total_exam_stat,
+            viewport=False,
+            stepsize=self.stepsize,
+        )
+        self.generate_task_plots()
+        self.grade_histogram = GradeHistogram(
+            self.point_table,
+            self.histogram_area,
+            viewport=True,
+        )
+        self.point_histogram = PointHistogram(
+            self.max_points,
+            self.point_histogram_area,
+            viewport=True,
+            stepsize=self.stepsize,
+        )
 
     def set_buttons_sensitive(self, sens: bool):
         self.new_button.set_sensitive(sens)
