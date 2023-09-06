@@ -29,6 +29,7 @@ from .gui_helpers import (
     get_content,
     show_about_dialog,
     successful_with_open_folder_dialog,
+    clear_container,
 )
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 from .savefile import DecryptDialog, EncryptDialog, create_save_content, decrypt_exam
@@ -280,11 +281,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.boxplt_ax.clear()
         self.taskplots.clear()
 
-        current_tdiagram = self.task_diagram_box.get_first_child()
-        while current_tdiagram is not None:
-            next_tdiagram = current_tdiagram.get_next_sibling()
-            self.task_diagram_box.remove(current_tdiagram)
-            current_tdiagram = next_tdiagram
+        clear_container(self.task_diagram_box, 0)
 
         tasknames = []
         for i, t in enumerate(self.tasks):
@@ -638,11 +635,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.generate_task_plots()
 
     def rebuild_gradingtable_header(self):
-        current_tlabel = self.task_label_box.get_first_child()
-        while current_tlabel is not None:
-            next_tlabel = current_tlabel.get_next_sibling()
-            self.task_label_box.remove(current_tlabel)
-            current_tlabel = next_tlabel
+        clear_container(self.task_label_box, 0)
 
         for i, t in enumerate(self.tasks):
             label = Gtk.Label.new(f"T{i+1}:\n{t.name[0:12]}")
@@ -761,13 +754,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def clear_tasks(self, rebuild_gradingtable: bool = False, *args):
         # First two items are header and seperator
-        current_task = (
-            self.task_list.get_first_child().get_next_sibling().get_next_sibling()
-        )
-        while current_task is not None:
-            next_task = current_task.get_next_sibling()
-            self.task_list.remove(current_task)
-            current_task = next_task
+        clear_container(self.task_list, 2)
 
         self.tasks.clear()
         self.task_list.append(AddTaskRow(self.add_task))

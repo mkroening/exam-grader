@@ -120,3 +120,14 @@ def create_file_dialog(
         file_choose_dialog.set_initial_folder(Gio.File.new_for_path(str(lastpath)))
 
     return file_choose_dialog
+
+
+def clear_container(container, skip: int = 0):
+    current_obj = container.get_first_child()
+    for _ in range(skip):
+        current_obj = current_obj.get_next_sibling()
+
+    while current_obj is not None:
+        next_obj = current_obj.get_next_sibling()
+        container.remove(current_obj)
+        current_obj = next_obj
