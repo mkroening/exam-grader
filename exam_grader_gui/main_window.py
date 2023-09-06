@@ -709,7 +709,7 @@ class MainWindow(Gtk.ApplicationWindow):
             surname_col = reader.fieldnames[csv_config.surname_col]
             attempts_col = reader.fieldnames[csv_config.trial_nr_col]
             try:
-                zero_points = [Taskpoint(task.id, 0.0) for task in self.tasks]
+                zero_points = [Taskpoint(task.id, None) for task in self.tasks]
                 for row in reader:
                     stud = Student(
                         id=row[stud_id_col],

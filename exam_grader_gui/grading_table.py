@@ -24,7 +24,7 @@ def empty_cb(widget, data):
 @dataclass
 class Taskpoint:
     task_id: int
-    points: float
+    points: Optional[float]
 
 
 @dataclass
@@ -49,7 +49,7 @@ class Student:
         grade_calculation: Optional[
             Callable[[float, GradeType], Tuple[str, GradeState]]
         ] = None,
-        additional_points: float = 0.0,
+        additional_points: Optional[float] = None,
         grade_type: GradeType = GradeType.NOTE,
         round_points: float = 0.5,
     ):
@@ -57,7 +57,7 @@ class Student:
         self.first_name = first_name
         self.surname = surname
         self.attempts = attempts
-        self.points: Dict[int, float] = {}
+        self.points: Dict[int, Optional[float]] = {}
         for p in points:
             self.points[p.task_id] = p.points
         self.grade_calculation = grade_calculation
@@ -79,18 +79,19 @@ class Student:
             except ValueError:
                 # Additional_Points entry is in the items as well...
                 pass
+        add_points = d["Tasks"].get("Additional_Points")
         return Student(
             id=d["StudentID"],
             first_name=d["First_Name"],
             surname=d["Surname"],
             attempts=d["Attempt"],
             points=points,
-            additional_points=d["Tasks"]["Additional_Points"],
+            additional_points=add_points,
             grade_type=GradeType.from_shortname(d.get("GradeState", "")),
         )
 
     def add_task(self, new_task: ExamTask):
-        self.points[new_task.id] = 0.0
+        self.points[new_task.id] = None
 
     def remove_task(self, task_id: int):
         del self.points[task_id]
@@ -101,10 +102,14 @@ class Student:
 
     def recalculate_points_and_grade(self) -> GradingUpdateVals:
         self.total_points = round_points(
-            sum(map(lambda p: p, self.points.values())), 0.25
+            sum([p for p in self.points.values() if p is not None]),
+            0.25,
         )
+        add_points = self.additional_points
+        if add_points is None:
+            add_points = 0.0
         self.total_points_final = round_points(
-            self.total_points + self.additional_points, self.round_points
+            self.total_points + add_points, self.round_points
         )
 
         if self.grade_calculation is not None:
@@ -132,8 +137,10 @@ class Student:
     def as_dict(self) -> Dict[str, Any]:
         taskpts: Dict[str, float] = {}
         for id, p in self.points.items():
-            taskpts[str(id)] = p
-        taskpts["Additional_Points"] = self.additional_points
+            if p is not None:
+                taskpts[str(id)] = p
+        if self.additional_points is not None:
+            taskpts["Additional_Points"] = self.additional_points
         d = {
             "StudentID": self.id,
             "First_Name": self.first_name,
@@ -226,7 +233,7 @@ class GradeTable:
             current_row = next_row
 
     def add_clicked(self, id: str, first_name: str, surname: str, attempts: int):
-        zero_points = [Taskpoint(task.id, 0.0) for task in self.tasks]
+        zero_points = [Taskpoint(task.id, None) for task in self.tasks]
         stud = Student(id, first_name, surname, attempts, zero_points)
         self.add_student(stud)
 
@@ -261,7 +268,7 @@ class GradeTable:
         hist = {}
         for label in self.point_table.all_labels:
             hist[label] = 0
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             # try:
             hist[stud.grade_final] += 1
             # except KeyError:
@@ -272,7 +279,7 @@ class GradeTable:
         hist = {}
         for label in range(int(self.point_table.points_maximum / point_step + 1.0)):
             hist[str(label / (1 / point_step))] = 0
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             if stud.grade_type.is_counted():
                 try:
                     hist[str(stud.total_points_final)] += 1
@@ -288,17 +295,19 @@ class GradeTable:
         task = next(t for t in self.tasks if t.id == task_id)
         for label in range(int(task.max_points / point_step + 1.0)):
             hist[float(label / (1 / point_step))] = 0
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             if stud.grade_type.is_counted():
-                pts.append(stud.points[task_id])
-                hist[stud.points[task_id]] += 1
+                p = stud.points.get(task_id)
+                if p is not None:
+                    pts.append(p)
+                    hist[p] += 1
         return hist, pts
 
     def point_and_grades_list(self) -> Tuple[List[float], List[str]]:
         """Returns a list of all grades and points of exams that are counted for statistic reasons"""
         points = []
         grades = []
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             if stud.grade_type.is_counted():
                 grades.append(stud.grade_final)
                 points.append(stud.total_points_final)
@@ -307,7 +316,7 @@ class GradeTable:
 
     def export(self) -> List[Dict[str, Any]]:
         exp = []
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             exp.append(stud.as_dict())
         return exp
 
@@ -324,7 +333,7 @@ class GradeTable:
             "GRADE_FINAL",
         ]
         tab.append(header)
-        for stud, row in self.entries:
+        for stud, _row in self.entries:
             tab.append(stud.as_list())
         return tab
 
@@ -437,10 +446,11 @@ class GradingRow(Gtk.Box):
 
         self.additional_points_entry.connect("changed", self.on_entry_update, -1)
         self.additional_points_entry.connect("activate", next_row_cb, self)
-        self.additional_points_entry.set_text(str(stud.additional_points))
+        if stud.additional_points is not None:
+            self.additional_points_entry.set_text(str(stud.additional_points))
 
         for t in self.tasks:
-            points = stud.points[t.id]
+            points = stud.points.get(t.id, None)
             taskpoint_entry = self.new_entry(t.id, points, t.max_points)
             taskpoint_entry.connect("activate", self.next_entry_grab_focus, t.id)
             self.point_entries[t.id] = taskpoint_entry
@@ -465,10 +475,12 @@ class GradingRow(Gtk.Box):
             next_entry = self.additional_points_entry
         next_entry.grab_focus()
 
-    def new_entry(self, taskid: int, points: float, max_points: float) -> Gtk.Entry:
+    def new_entry(
+        self, taskid: int, points: Optional[float], max_points: float
+    ) -> Gtk.Entry:
         taskpoint_entry = Gtk.Entry()
         taskpoint_entry.set_size_request(90, -1)
-        taskpoint_entry.set_placeholder_text("0.0")
+        taskpoint_entry.set_placeholder_text("")
         taskpoint_entry.set_hexpand(False)
         taskpoint_entry.set_hexpand_set(True)
         taskpoint_entry.set_vexpand(False)
@@ -476,10 +488,11 @@ class GradingRow(Gtk.Box):
         taskpoint_entry.set_max_width_chars(5)
         taskpoint_entry.set_alignment(0.5)
         taskpoint_entry.set_width_chars(3)
-        taskpoint_entry.set_text(str(points))
+        if points is not None:
+            taskpoint_entry.set_text(str(points))
+            taskpoint_entry.set_progress_fraction(points / max_points)
         taskpoint_entry.connect("changed", self.on_entry_update, taskid)
         taskpoint_entry.get_style_context().add_class("flat")
-        taskpoint_entry.set_progress_fraction(points / max_points)
         return taskpoint_entry
 
     def update_entries(self):
@@ -496,13 +509,12 @@ class GradingRow(Gtk.Box):
             del self.point_entries[v]
 
         # add not yet existing tasks
-        for i, t in enumerate(self.tasks):
+        for _i, t in enumerate(self.tasks):
             if self.point_entries.get(t.id) is None:
                 new_e = self.new_entry(t.id, self.student.points[t.id], t.max_points)
                 self.point_entries[t.id] = new_e
                 self.task_point_area.append(new_e)
 
-        self.task_point_area.show_all()
         new_vals = self.student.recalculate_points_and_grade()
         self.set_points_from_update_vals(new_vals)
 
@@ -560,7 +572,7 @@ class GradingRow(Gtk.Box):
         if task_id == -1:
             # Additional Point entry
             entry = self.additional_points_entry
-            p = get_content(entry, float, default_val=0.0)
+            p = get_content(entry, float, default_val=None)
         else:
             entry = self.point_entries[task_id]
             task = next(t for t in self.tasks if t.id == task_id)
@@ -568,7 +580,7 @@ class GradingRow(Gtk.Box):
             def validate_maxpoints(points):
                 return points <= task.max_points
 
-            p = get_content(entry, float, validate_maxpoints, default_val=0.0)
+            p = get_content(entry, float, validate_maxpoints, default_val=None)
             if p is not None:
                 entry.set_progress_fraction(p / task.max_points)
 

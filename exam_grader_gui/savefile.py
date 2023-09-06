@@ -55,7 +55,7 @@ def create_save_content(
         ).decode("utf-8")
 
     else:
-        save_content["PointTable"] = (point_table.as_dict(),)
+        save_content["PointTable"] = point_table.as_dict()
         save_content["Tasks"] = task_settings
         save_content["Grading"] = grading.export()
     return save_content
