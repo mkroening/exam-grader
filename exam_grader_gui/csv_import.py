@@ -87,8 +87,9 @@ class CsvImportDialog(Gtk.Window):
             return
 
         with self.csv_config.path.open(newline="") as csv_f:
-            if csv.Sniffer().has_header(csv_f.read(1024)):
-                self.csv_config.dialect = csv.Sniffer().sniff(csv_f.read(1024))
+            if csv.Sniffer().has_header(csv_f.read(50000)):
+                csv_f.seek(0)
+                self.csv_config.dialect = csv.Sniffer().sniff(csv_f.read(100000))
                 csv_f.seek(0)
                 reader = csv.DictReader(csv_f, dialect=self.csv_config.dialect)
                 model = Gtk.ListStore(str)
@@ -122,7 +123,7 @@ class CsvImportDialog(Gtk.Window):
                 )
                 self.surname_combo.set_active(combo_index)
                 self.trial_nr_combo.set_model(model)
-                combo_index = search_keyword(["TRIAL", "ANTRITTE"])
+                combo_index = search_keyword(["TRIAL", "ANTRITTE", "ATTEMPTS"])
                 self.trial_nr_combo.set_active(combo_index)
                 self.csv_col_selection_revealer.set_reveal_child(True)
             else:

@@ -695,7 +695,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.lastpath = csv_config.path
         with csv_config.path.open("rb") as file:
-            rawdata = file.read(1000)
+            rawdata = file.read(100000)
         result = chardet.detect(rawdata)
         encoding = result["encoding"]
 
@@ -721,7 +721,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                     self.grading.add_student(stud)
 
-            except ValueError:
+            except (ValueError, UnicodeDecodeError):
                 error_dialog = Gtk.AlertDialog()
                 error_dialog.set_message("Error")
                 error_dialog.set_detail("Invalid Input")
