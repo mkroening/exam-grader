@@ -50,6 +50,7 @@ class Student:
         additional_points: Optional[float] = None,
         grade_type: GradeType = GradeType.NOTE,
         round_points: float = 0.5,
+        comment: Optional[str] = None,
     ):
         self.id = id
         self.first_name = first_name
@@ -65,6 +66,7 @@ class Student:
         self.state_final = GradeState.PASS
         self.grade = ""
         self.grade_final = ""
+        self.comment = comment
         self.round_points = round_points
         self.recalculate_points_and_grade()
 
@@ -78,6 +80,7 @@ class Student:
                 # Additional_Points entry is in the items as well...
                 pass
         add_points = d["Tasks"].get("Additional_Points")
+        comment = d.get("Comment")
         return Student(
             id=d["StudentID"],
             first_name=d["First_Name"],
@@ -86,6 +89,7 @@ class Student:
             points=points,
             additional_points=add_points,
             grade_type=GradeType.from_shortname(d.get("GradeState", "")),
+            comment=comment,
         )
 
     def add_task(self, new_task: ExamTask):
@@ -132,6 +136,12 @@ class Student:
             self.points[tp.task_id] = tp.points
         return self.recalculate_points_and_grade()
 
+    def update_comment(self, comment: str):
+        if comment == "":
+            self.comment = None
+        else:
+            self.comment = comment
+
     def as_dict(self) -> Dict[str, Any]:
         taskpts: Dict[str, float] = {}
         for id, p in self.points.items():
@@ -147,6 +157,8 @@ class Student:
             "GradeState": self.grade_type.shortname(),
             "Tasks": taskpts,
         }
+        if self.comment is not None:
+            d["Comment"] = self.comment
         return d
 
     def as_list(self) -> List[str]:
@@ -159,6 +171,10 @@ class Student:
             self.grade,
             self.grade_final,
         ]
+        comment_str = self.comment or ""
+        l.append(
+            comment_str.replace("\n", " ")
+        )  # We don't include newlines in the CSV export. It will most likely break stuff.
         return l
 
     def __lt__(self, other: Student):
@@ -329,6 +345,7 @@ class GradeTable:
             "TOTAL_POINTS_FINAL",
             "GRADE",
             "GRADE_FINAL",
+            "COMMENT",
         ]
         tab.append(header)
         for stud, _row in self.entries:
@@ -400,6 +417,7 @@ class GradingRow(Gtk.Box):
     grade_final_label = Gtk.Template.Child("grade_final_label")
     task_point_area = Gtk.Template.Child("task_points")
     state_combo = Gtk.Template.Child("state_combo")
+    comment_buffer = Gtk.Template.Child("comment_buffer")
     delete_button = Gtk.Template.Child("delete_button")
 
     additional_points_entry = Gtk.Template.Child("additional_points_entry")
@@ -455,6 +473,10 @@ class GradingRow(Gtk.Box):
             self.task_point_area.append(taskpoint_entry)
 
         self.set_dim_entries(not (self.student.grade_type.is_counted()))
+
+        if stud.comment is not None:
+            self.comment_buffer.set_text(stud.comment)
+        self.comment_buffer.connect("changed", self.on_comment_changed)
 
     def next_entry_grab_focus(self, widget, data):
         next_entry = None
@@ -601,6 +623,11 @@ class GradingRow(Gtk.Box):
         self.set_dim_entries(not (self.student.grade_type.is_counted()))
         self.update_grade_style()
         self.row_changed_cb()
+
+    def on_comment_changed(self, widget):
+        self.student.update_comment(
+            widget.get_text(widget.get_start_iter(), widget.get_end_iter(), True)
+        )
 
 
 @unique

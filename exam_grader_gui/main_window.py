@@ -708,15 +708,22 @@ class MainWindow(Gtk.ApplicationWindow):
             first_name_col = reader.fieldnames[csv_config.first_name_col]
             surname_col = reader.fieldnames[csv_config.surname_col]
             attempts_col = reader.fieldnames[csv_config.trial_nr_col]
+            comment_col = (
+                reader.fieldnames[csv_config.comment_col]
+                if csv_config.comment_col is not None and csv_config.comment_col >= 0
+                else None
+            )
             try:
                 zero_points = [Taskpoint(task.id, None) for task in self.tasks]
                 for row in reader:
+                    comment = row[comment_col] if comment_col is not None else None
                     stud = Student(
                         id=row[stud_id_col],
                         first_name=row[first_name_col],
                         surname=row[surname_col],
                         attempts=int(row[attempts_col]),
                         points=zero_points,
+                        comment=comment,
                     )
 
                     self.grading.add_student(stud)

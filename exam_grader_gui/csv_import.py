@@ -16,6 +16,7 @@ class CsvImportConfig:
     first_name_col: int
     surname_col: int
     trial_nr_col: int
+    comment_col: Optional[int]
 
     def is_valid(self) -> bool:
         selections = set()
@@ -40,6 +41,7 @@ class CsvImportDialog(Gtk.Window):
     first_name_combo = Gtk.Template.Child("first_name_combo")
     surname_combo = Gtk.Template.Child("surname_combo")
     trial_nr_combo = Gtk.Template.Child("trial_nr_combo")
+    comment_combo = Gtk.Template.Child("comment_combo")
     cancel_button = Gtk.Template.Child("cancel_button")
     import_button = Gtk.Template.Child("import_button")
 
@@ -55,7 +57,7 @@ class CsvImportDialog(Gtk.Window):
         self.import_callback = import_callback
         self.lastdir = lastdir
 
-        self.csv_config = CsvImportConfig(None, None, -1, -1, -1, -1)
+        self.csv_config = CsvImportConfig(None, None, -1, -1, -1, -1, None)
 
     @Gtk.Template.Callback()
     def on_select_file_clicked(self, widget):
@@ -93,16 +95,16 @@ class CsvImportDialog(Gtk.Window):
                 csv_f.seek(0)
                 reader = csv.DictReader(csv_f, dialect=self.csv_config.dialect)
                 model = Gtk.ListStore(str)
+                model_with_empty = Gtk.ListStore(str)
+                model_with_empty.append([])
 
                 for name in filter(
                     lambda name: name != "",
                     map(lambda name: name.strip(), reader.fieldnames),
                 ):
-                    model.append(
-                        [
-                            name,
-                        ]
-                    )
+                    entry = [name]
+                    model.append(entry)
+                    model_with_empty.append(entry)
 
                 def search_keyword(keywords) -> int:
                     for i, s in enumerate(reader.fieldnames):
@@ -125,6 +127,12 @@ class CsvImportDialog(Gtk.Window):
                 self.trial_nr_combo.set_model(model)
                 combo_index = search_keyword(["TRIAL", "ANTRITTE", "ATTEMPTS"])
                 self.trial_nr_combo.set_active(combo_index)
+
+                self.comment_combo.set_model(model_with_empty)
+                combo_index = search_keyword(["COMMENT", "ANMERKUNG", "KOMMENTAR"])
+                if combo_index != 0:
+                    self.comment_combo.set_active(combo_index + 1)
+
                 self.csv_col_selection_revealer.set_reveal_child(True)
             else:
                 raise RuntimeError("Unimplemented")
@@ -135,6 +143,11 @@ class CsvImportDialog(Gtk.Window):
         self.csv_config.first_name_col = self.first_name_combo.get_active()
         self.csv_config.surname_col = self.surname_combo.get_active()
         self.csv_config.trial_nr_col = self.trial_nr_combo.get_active()
+        self.csv_config.comment_col = (
+            self.comment_combo.get_active() - 1
+            if self.comment_combo.get_active() > 0
+            else None
+        )
         self.import_button.set_sensitive(self.csv_config.is_valid())
 
     @Gtk.Template.Callback()
