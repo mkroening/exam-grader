@@ -567,18 +567,21 @@ class GradingRow(Gtk.Box):
     def on_entry_update(self, widget, task_id: int):
         p = None
 
+        def non_negative(f: float) -> bool:
+            return f >= 0
+
         if task_id == -1:
             # Additional Point entry
             entry = self.additional_points_entry
-            p = get_content(entry, float, default_val=None)
+            p = get_content(entry, float, non_negative, default_val=None)
         else:
             entry = self.point_entries[task_id]
             task = next(t for t in self.tasks if t.id == task_id)
 
-            def validate_maxpoints(points):
-                return points <= task.max_points
+            def validate_points(points):
+                return points <= task.max_points and non_negative(points)
 
-            p = get_content(entry, float, validate_maxpoints, default_val=None)
+            p = get_content(entry, float, validate_points, default_val=None)
             if p is not None:
                 entry.set_progress_fraction(p / task.max_points)
 
