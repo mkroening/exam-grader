@@ -11,6 +11,7 @@ from gi.repository import Adw, Gtk
 
 from exam_grader_gui import MainWindow
 
+
 win = None
 
 

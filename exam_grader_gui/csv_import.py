@@ -57,9 +57,6 @@ class CsvImportDialog(Gtk.Window):
 
         self.csv_config = CsvImportConfig(None, None, -1, -1, -1, -1)
 
-        # if lastdir is not None:
-        #     self.select_file_button.set_label(lastdir)
-
     @Gtk.Template.Callback()
     def on_select_file_clicked(self, widget):
         file_choose_dialog = create_file_dialog(

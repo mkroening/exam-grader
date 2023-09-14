@@ -26,6 +26,7 @@ class Histogram:
         self.labels = list(labels)
         self.bar_width = bar_width
         mplfigure = Figure(figsize=(10, 2), dpi=100)
+
         self.ax = mplfigure.add_subplot(111)
         self.ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
