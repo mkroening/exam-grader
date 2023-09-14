@@ -1096,8 +1096,7 @@ Points</property>
                                               <object class="GtkLabel" id="total_points_label">
                                                 <property name="halign">center</property>
                                                 <property name="justify">center</property>
-                                                <property name="label" translatable="yes">Total
-Points</property>
+                                                <property name="label">Sum</property>
                                                 <property name="tooltip-text" translatable="yes">Sum of all points without "Additional Points"</property>
                                                 <property name="width-request">60</property>
                                               </object>
@@ -1106,10 +1105,10 @@ Points</property>
                                               <object class="GtkLabel" id="total_points_final_label">
                                                 <property name="halign">center</property>
                                                 <property name="justify">center</property>
-                                                <property name="label" translatable="yes">Total Points
+                                                <property name="label" translatable="yes">Sum
 (final)</property>
                                                 <property name="tooltip-text" translatable="yes">Sum of all points including "Additional Points"</property>
-                                                <property name="width-request">80</property>
+                                                <property name="width-request">60</property>
                                               </object>
                                             </child>
                                             <child>
