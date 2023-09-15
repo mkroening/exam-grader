@@ -924,6 +924,8 @@ class MainWindow(Gtk.ApplicationWindow):
             warn_dialog.set_default_button(0)
             # warn_dialog.get_cancel_button().get_style_context().add_class("destructive-action")
             warn_dialog.choose(self, None, self.perform_clear, None)
+        else:
+            self.clear(True)
 
     def perform_clear(self, source_obj, async_res, data):
         result = source_obj.choose_finish(async_res)
