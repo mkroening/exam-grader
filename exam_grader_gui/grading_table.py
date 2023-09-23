@@ -212,9 +212,19 @@ class GradeTable:
         self.listbox.append(row)
 
     def focus_next_row(self, widget, row):
-        row_nr = next(i for i, r in enumerate(self.listbox) if r.get_child() == row)
+        # Find current row index
+        curent_row_nr = (
+            next(i for i, r in enumerate(self.listbox) if r.get_child() == row) - 2
+        )
         try:
-            self.listbox.get_row_at_index(row_nr + 1).get_child().focus_on_first_entry()
+            next_row_nr = curent_row_nr + 1
+            while next_row_nr < len(self.entries):
+                if self.entries[next_row_nr][0].grade_type.is_counted():
+                    self.listbox.get_row_at_index(
+                        next_row_nr + 2
+                    ).get_child().focus_on_first_entry()
+                    return
+                next_row_nr += 1
         except AttributeError:
             pass
 
