@@ -302,7 +302,7 @@ class MainWindow(Gtk.ApplicationWindow):
         ax.plot()
         canvas = FigureCanvas(fig)
         canvas.set_size_request(600, 300)
-        d = {}
+        d: Dict[str, Any] = {}
         d["bar"] = bar
         d["ax"] = ax
         d["canvas"] = canvas

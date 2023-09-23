@@ -1,5 +1,6 @@
 from typing import Callable, Collection, Dict, List, Optional, Union
 
+# mypy: follow_imports = skip
 import matplotlib
 from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
 from matplotlib.figure import Figure
@@ -74,7 +75,7 @@ class Histogram:
         self.heights = heights
         assert len(heights) == len(self.bars)
         for b, h in zip(self.bars, heights):
-            b.set_height(h)
+            b.set_height(h)  # type: ignore
         self.ax.relim()
         self.ax.autoscale()
         if self.ax.get_ylim()[1] < 1:
@@ -93,8 +94,8 @@ class Histogram:
             b.remove()
         self.bars = list(
             self.ax.bar(
-                labels,
-                heights,
+                labels,  # type: ignore
+                heights,  # type: ignore
                 width=self.bar_width,
                 color=["tab:red"] + ["tab:blue"] * (len(labels) - 1),
             )
@@ -103,11 +104,11 @@ class Histogram:
             self.ax.set_ylim(0, 1)
         self.ax.relim()
 
-    def recreate_boxplot(self, points: Collection[float]):
+    def recreate_boxplot(self, points: List[int]):
         assert self.with_boxplot
         self.box_ax.clear()
         style = dict(alpha=0.25)
-        self.box_ax.boxplot(
+        self.box_ax.boxplot(  # type: ignore
             points,
             vert=False,
             positions=[0.8],
@@ -124,7 +125,7 @@ class Histogram:
         # The box axis overwrites the tick labes. This is a dirty workaround to
         # scale the box_axis labels back to the real ones
         if self.tick_formatter is not None:
-            self.box_ax.xaxis.set_major_formatter(self.tick_formatter)
+            self.box_ax.xaxis.set_major_formatter(self.tick_formatter)  # type: ignore
         self.box_ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
@@ -178,9 +179,9 @@ class PointHistogram(Histogram):
         fail_bar_nr = int(pass_point / self.bucket_size)
         for i, b in enumerate(self.bars):
             if i < fail_bar_nr:
-                b.set_color("tab:red")
+                b.set_color("tab:red")  # type: ignore
             else:
-                b.set_color("tab:blue")
+                b.set_color("tab:blue")  # type: ignore
 
     def clear_separators(self):
         for s in self.separators:
