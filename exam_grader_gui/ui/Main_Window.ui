@@ -1267,6 +1267,7 @@ Points</property>
                                     <property name="spacing">10</property>
                                   </object>
                                 </property>
+                                <property name="sensitive">False</property>
                               </object>
                             </property>
                             <property name="focusable">1</property>
@@ -1299,7 +1300,8 @@ Points</property>
                                   <object class="GtkBox" id="task_diagram_box">
                                     <property name="homogeneous">1</property>
                                     <property name="orientation">vertical</property>
-                                    <property name="spacing">10</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="spacing">20</property>
                                   </object>
                                 </property>
                               </object>

@@ -54,7 +54,7 @@ class Histogram:
 
         self.ax.plot()
         self.canvas = FigureCanvas(mplfigure)
-        self.canvas.set_size_request(400, 200)
+        self.canvas.set_size_request(500, 200)
         if viewport:
             area.set_child(self.canvas)
         else:

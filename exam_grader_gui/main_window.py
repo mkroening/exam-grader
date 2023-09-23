@@ -908,11 +908,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.update_max_points()
             self.point_histogram.relimit_x_axis(self.point_table.points_max[-1])
             self.big_histogram.relimit_x_axis(self.point_table.points_max[-1])
-            self.update_grade_table(None, False)
             self.rebuild_gradingtable_header()
 
             for stud in exam["Grading"]:
                 self.grading.add_student(Student.from_dict(stud))
+            self.update_grade_table(None, False)
 
             self.block_histogram_update = tmp
             self.update_histogram(None, False)
