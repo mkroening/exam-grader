@@ -338,10 +338,10 @@ class GradeTable:
         for label in self.point_table.all_labels:
             hist[label] = 0
         for stud, _row in self.entries:
-            # try:
-            hist[stud.grade_final] += 1
-            # except KeyError:
-            #     pass
+            try:
+                hist[stud.grade_final] += 1
+            except KeyError:
+                pass
         return hist
 
     def point_histogram(self, point_step: float = 0.5) -> Dict[str, int]:
