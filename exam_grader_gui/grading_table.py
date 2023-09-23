@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from bisect import insort
 from dataclasses import dataclass
-from enum import IntEnum, unique
+from enum import Enum, IntEnum, unique
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from gi.repository import Gtk
+from gi.repository import Gdk, Gtk
 
 from .exam import ExamTask, GradeState, GradeType, PointTable
 from .gui_helpers import get_content
@@ -17,6 +17,13 @@ def round_points(f: float, step: float) -> float:
 
 def empty_cb(widget, data):
     return True
+
+
+class Direction(Enum):
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
 
 
 @dataclass
@@ -207,26 +214,64 @@ class GradeTable:
             self.entry_changed_cb,
             self.delete_row,
             self.focus_next_row,
+            self.focus_other_entry,
         )
         insort(self.entries, (stud, row))
         self.listbox.append(row)
 
     def focus_next_row(self, widget, row):
-        # Find current row index
-        curent_row_nr = (
-            next(i for i, r in enumerate(self.listbox) if r.get_child() == row) - 2
-        )
         try:
-            next_row_nr = curent_row_nr + 1
-            while next_row_nr < len(self.entries):
-                if self.entries[next_row_nr][0].grade_type.is_counted():
-                    self.listbox.get_row_at_index(
-                        next_row_nr + 2
-                    ).get_child().focus_on_first_entry()
-                    return
-                next_row_nr += 1
+            self.get_valid_row(row, direction=Direction.DOWN).focus_on_entry(
+                self.tasks[0].id
+            )
         except AttributeError:
             pass
+
+    def focus_other_entry(self, row, task_id: int, direction: Direction):
+        focus_row = row
+        if direction == Direction.UP or direction == Direction.DOWN:
+            focus_row = self.get_valid_row(row, direction)
+
+        current_task_index = self.get_task_index(task_id)
+        if direction == Direction.LEFT:
+            current_task_index -= 1
+        if direction == Direction.RIGHT:
+            current_task_index += 1
+        focus_id = (
+            self.tasks[current_task_index].id
+            if current_task_index < len(self.tasks) and current_task_index != -1
+            # -1 is the additional points entry
+            else -1
+        )
+        if focus_row is not None and focus_id is not None:
+            focus_row.focus_on_entry(focus_id)
+
+    def get_valid_row(self, row, direction: Direction) -> Optional[GradingRow]:
+        current_row = (
+            # Find current row index
+            next(i for i, r in enumerate(self.listbox) if r.get_child() == row)
+            - 2
+        )
+        if direction == Direction.DOWN:
+            next_row_nr = current_row + 1
+        elif direction == Direction.UP:
+            next_row_nr = current_row - 1
+        else:
+            raise RuntimeError("Can only find Up/Down with this function")
+
+        while next_row_nr < len(self.entries) and next_row_nr >= 0:
+            if self.entries[next_row_nr][0].grade_type.is_counted():
+                next_row = self.listbox.get_row_at_index(next_row_nr + 2).get_child()
+                assert isinstance(next_row, GradingRow)
+                return next_row
+            if direction == Direction.DOWN:
+                next_row_nr += 1
+            elif direction == Direction.UP:
+                next_row_nr -= 1
+            else:
+                raise RuntimeError("Can only find Up/Down with this function")
+
+        return None
 
     def delete_row(self, widget, id: int):
         # Skip the first two rows as they are headers
@@ -362,6 +407,12 @@ class GradeTable:
             tab.append(stud.as_list())
         return tab
 
+    def get_task_index(self, task_id: int) -> int:
+        try:
+            return next((i, t) for i, t in enumerate(self.tasks) if t.id == task_id)[0]
+        except StopIteration:
+            return -1
+
     def get_by_id(self, id: str) -> Student:
         return next(e[0] for e in self.entries if e[0].id == id)
 
@@ -440,6 +491,7 @@ class GradingRow(Gtk.Box):
         row_changed_cb: Callable,
         row_deleted_cb: Callable,
         next_row_cb: Callable,
+        focus_other_entry_cb: Callable,
     ):
         super(Gtk.Box, self).__init__()
 
@@ -470,6 +522,10 @@ class GradingRow(Gtk.Box):
 
         self.point_entries = {}
 
+        keycont = Gtk.EventControllerKey.new()
+        keycont.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        keycont.connect("key-pressed", self.key_pressed, -1)
+        self.additional_points_entry.add_controller(keycont)
         self.additional_points_entry.connect("changed", self.on_entry_update, -1)
         self.additional_points_entry.connect("activate", next_row_cb, self)
         if stud.additional_points is not None:
@@ -478,7 +534,6 @@ class GradingRow(Gtk.Box):
         for t in self.tasks:
             points = stud.points.get(t.id, None)
             taskpoint_entry = self.new_entry(t.id, points, t.max_points)
-            taskpoint_entry.connect("activate", self.next_entry_grab_focus, t.id)
             self.point_entries[t.id] = taskpoint_entry
             self.task_point_area.append(taskpoint_entry)
 
@@ -487,6 +542,8 @@ class GradingRow(Gtk.Box):
         if stud.comment is not None:
             self.comment_buffer.set_text(stud.comment)
         self.comment_buffer.connect("changed", self.on_comment_changed)
+
+        self.focus_other_entry_cb = focus_other_entry_cb
 
     def next_entry_grab_focus(self, widget, data):
         next_entry = None
@@ -497,11 +554,11 @@ class GradingRow(Gtk.Box):
             next_entry = self.additional_points_entry
         next_entry.grab_focus()
 
-    def focus_on_first_entry(self):
+    def focus_on_entry(self, task_id: int):
         next_entry = None
         try:
-            next_entry = self.point_entries[self.tasks[0].id]
-        except IndexError:
+            next_entry = self.point_entries[task_id]
+        except KeyError:
             next_entry = self.additional_points_entry
         next_entry.grab_focus()
 
@@ -521,9 +578,36 @@ class GradingRow(Gtk.Box):
         if points is not None:
             taskpoint_entry.set_text(str(points))
             taskpoint_entry.set_progress_fraction(points / max_points)
+        taskpoint_entry.connect("activate", self.next_entry_grab_focus, taskid)
         taskpoint_entry.connect("changed", self.on_entry_update, taskid)
         taskpoint_entry.get_style_context().add_class("flat")
+        keycont = Gtk.EventControllerKey.new()
+        keycont.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        keycont.connect("key-pressed", self.key_pressed, taskid)
+        taskpoint_entry.add_controller(keycont)
         return taskpoint_entry
+
+    def key_pressed(self, conroller, keyval, keycode, state, taskid):
+        """Provide Arrow key navigation"""
+        if keyval == Gdk.keyval_from_name("Up"):
+            self.focus_other_entry_cb(self, taskid, Direction.UP)
+            return True
+        if keyval == Gdk.keyval_from_name("Down"):
+            self.focus_other_entry_cb(self, taskid, Direction.DOWN)
+            return True
+        if (
+            keyval == Gdk.keyval_from_name("Left")
+            and "GDK_CONTROL_MASK" in state.value_names
+        ):
+            self.focus_other_entry_cb(self, taskid, Direction.LEFT)
+            return True
+        if (
+            keyval == Gdk.keyval_from_name("Right")
+            and "GDK_CONTROL_MASK" in state.value_names
+        ):
+            self.focus_other_entry_cb(self, taskid, Direction.RIGHT)
+            return True
+        return False
 
     def update_entries(self):
         """Update the row, after the tasks and the student are already updated"""
