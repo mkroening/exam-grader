@@ -623,7 +623,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tasks.append(new_task)
         self.task_list.remove(self.task_list.get_last_child())
         self.task_list.append(TaskRow(id, name, points, self.remove_task))
-        self.task_list.append(AddTaskRow(self.add_task))
+        add_task_row = AddTaskRow(self.add_task)
+        self.task_list.append(add_task_row)
+        add_task_row.taskname_entry.grab_focus()
         # self.task_list.show_all()
 
         self.max_points = sum(map(lambda t: t.max_points, self.tasks))
