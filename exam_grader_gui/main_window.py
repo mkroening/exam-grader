@@ -134,6 +134,23 @@ class MainWindow(Gtk.ApplicationWindow):
             )
         self.add_controller(shortcut_cont)
 
+        # Grade table cotext menu setup
+        evk = Gtk.GestureClick.new()
+        evk.set_button(3)  # Right click
+        evk.connect("pressed", self.on_grade_table_button_pressed)
+        self.point_table_box.add_controller(evk)
+        action = Gio.SimpleAction.new("copy_grade_table", None)
+        action.connect("activate", self.copy_grade_table)
+        self.add_action(action)
+        menu = Gio.Menu.new()
+        menu.append("Copy Table", "win.copy_grade_table")
+        self.grade_table_popover = Gtk.PopoverMenu()
+        self.grade_table_popover.set_menu_model(menu)
+        self.grade_table_popover.set_parent(self.point_table_box)
+        # This is somehow necessary to us the offset calculation.
+        self.grade_table_popover.set_pointing_to(Gdk.Rectangle(0, 0, 0, 0))
+        self.grade_table_popover.set_has_arrow(False)
+
         self.stepsize = 1.0
         self.modified = False
         self.block_histogram_update = False
@@ -963,20 +980,12 @@ class MainWindow(Gtk.ApplicationWindow):
 
         return True
 
-    # @Gtk.Template.Callback()
-    def on_grade_table_button_pressed(self, widget, data):
-        if data.get_button() == (True, 3):
-            menu = Gtk.Menu()
-            entry = Gtk.MenuItem.new_with_label("Copy Table")
-            entry.connect("activate", self.copy_grade_table)
-            menu.append(entry)
-            menu.attach_to_widget(self.point_table_box)
-            # menu.show_all()
-            menu.popup_at_pointer(data)
+    def on_grade_table_button_pressed(self, gesture, data, x, y):
+        self.grade_table_popover.set_offset(x, y)
+        self.grade_table_popover.popup()
 
-    def copy_grade_table(self, widget):
-        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        self.clipboard.set_text(self.point_table.as_str(), -1)
+    def copy_grade_table(self, widget, data):
+        self.get_clipboard().set(self.point_table.as_str())
 
     def switch_main_stack_setup(self, *args):
         self.main_stack.set_visible_child_name("exam_page")
