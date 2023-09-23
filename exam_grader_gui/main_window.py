@@ -156,7 +156,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.block_histogram_update = False
         self.block_grade_table_update = False
         self.max_points = 100
-        self.point_table = PointTable(10, 5, self.max_points, min_step=self.min_point_step)
+        self.point_table = PointTable(
+            10, 5, self.max_points, min_step=self.min_point_step
+        )
 
         self.tasks: List[ExamTask] = []
 
@@ -180,9 +182,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
         figure_boxplt = Figure(figsize=(10, 2), dpi=100)
         self.boxplt_ax = figure_boxplt.add_subplot(111)
-        self.boxplt = self.boxplt_ax.boxplot(
-            [[1, 2, 3], [3, 3, 5], [10, 1, 0]], labels=["T1", "T2", "T3"]
-        )
         self.boxplt_ax.plot()
         self.boxcanvas = FigureCanvas(figure_boxplt)
         self.boxcanvas.set_size_request(500, 300)
@@ -344,7 +343,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.boxplt_ax.clear()
         if len(taskpts) > 0:
-            self.boxplt = self.boxplt_ax.boxplot(taskpts, labels=tasknames)
+            self.boxplt_ax.violinplot(taskpts, showmedians=True)
+            self.boxplt_ax.set_xticks(
+                [y + 1 for y in range(len(taskpts))], labels=tasknames
+            )
             maxpoints = 1
             for i, t in enumerate(self.tasks):
                 self.boxplt_ax.hlines(
