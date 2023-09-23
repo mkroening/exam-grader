@@ -151,12 +151,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.grade_table_popover.set_pointing_to(Gdk.Rectangle(0, 0, 0, 0))
         self.grade_table_popover.set_has_arrow(False)
 
-        self.stepsize = 1.0
+        self.min_point_step = 0.5
         self.modified = False
         self.block_histogram_update = False
         self.block_grade_table_update = False
         self.max_points = 100
-        self.point_table = PointTable(10, 5, self.max_points, min_step=self.stepsize)
+        self.point_table = PointTable(10, 5, self.max_points, min_step=self.min_point_step)
 
         self.tasks: List[ExamTask] = []
 
@@ -175,7 +175,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.max_points,
             self.point_histogram_area,
             viewport=True,
-            stepsize=self.stepsize,
+            bucket_size=self.min_point_step,
         )
 
         figure_boxplt = Figure(figsize=(10, 2), dpi=100)
@@ -192,7 +192,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.max_points,
             self.total_exam_stat,
             viewport=False,
-            stepsize=self.stepsize,
+            bucket_size=self.min_point_step,
         )
 
         self.taskplots = {}
@@ -223,7 +223,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.max_points,
             self.total_exam_stat,
             viewport=False,
-            stepsize=self.stepsize,
+            bucket_size=self.min_point_step,
         )
         self.generate_task_plots()
         self.grade_histogram = GradeHistogram(
@@ -235,7 +235,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.max_points,
             self.point_histogram_area,
             viewport=True,
-            stepsize=self.stepsize,
+            bucket_size=self.min_point_step,
         )
 
     def set_buttons_sensitive(self, sens: bool):
@@ -452,11 +452,12 @@ class MainWindow(Gtk.ApplicationWindow):
     def update_max_points(self):
         # If only the maxpoints change, we don't need to update the grading and grade histogram
         passing_pts = self.passing_spin.get_value()
-        stepsize = self.stepsize_spin.get_value()
+        point_step = self.stepsize_spin.get_value()
         self.point_table = PointTable(
-            passing_pts, stepsize, self.max_points, min_step=self.stepsize
+            passing_pts, point_step, self.max_points, min_step=self.min_point_step
         )
         new_max = self.point_table.points_max[-1]
+        self.grading.point_table = self.point_table
         self.label_1_0_to.set_text(f"{new_max}")
         self.point_histogram.relimit_x_axis(new_max)
         self.big_histogram.relimit_x_axis(new_max)
@@ -484,9 +485,9 @@ class MainWindow(Gtk.ApplicationWindow):
         if was_modified:
             self.modified = True
         passing_pts = self.passing_spin.get_value()
-        stepsize = self.stepsize_spin.get_value()
+        point_step = self.stepsize_spin.get_value()
         self.point_table = PointTable(
-            passing_pts, stepsize, self.max_points, min_step=self.stepsize
+            passing_pts, point_step, self.max_points, min_step=self.min_point_step
         )
 
         tmp = self.block_histogram_update

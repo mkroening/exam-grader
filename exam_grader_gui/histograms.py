@@ -1,4 +1,4 @@
-from typing import Collection, Dict, List, Optional, Union
+from typing import Callable, Collection, Dict, List, Optional, Union
 
 import matplotlib
 from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
@@ -22,6 +22,7 @@ class Histogram:
         axis_labels: bool = False,
         with_boxplot: bool = False,
         bar_width: float = 0.5,
+        tick_formatter: Optional[Callable[[int, int], str]] = None,
     ):
         self.labels = list(labels)
         self.bar_width = bar_width
@@ -49,6 +50,7 @@ class Histogram:
         if self.with_boxplot:
             self.box_ax = self.ax.twinx()
             self.box_ax.set_ylim(0, 1)
+        self.tick_formatter = tick_formatter
 
         self.ax.plot()
         self.canvas = FigureCanvas(mplfigure)
@@ -115,9 +117,15 @@ class Histogram:
             whiskerprops=style,
             capprops=style,
             meanprops=style,
+            manage_ticks=False,
         )
         self.box_ax.set_yticks([])
         self.box_ax.set_ylim(bottom=0.0, top=1.0)
+        # The box axis overwrites the tick labes. This is a dirty workaround to
+        # scale the box_axis labels back to the real ones
+        if self.tick_formatter is not None:
+            self.box_ax.xaxis.set_major_formatter(self.tick_formatter)
+        self.box_ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
 class GradeHistogram(Histogram):
@@ -143,14 +151,14 @@ class PointHistogram(Histogram):
         area,
         viewport: bool = False,
         values: Optional[Collection[int]] = None,
-        stepsize: float = 0.5,
+        bucket_size: float = 0.5,
         title: Optional[str] = None,
         axis_labels: bool = False,
         with_boxplot: bool = False,
     ):
-        self.stepsize = stepsize
+        self.bucket_size = bucket_size
         self.max_points = max_points
-        labels = [str(i * stepsize) for i in range(int(max_points / stepsize))]
+        labels = [str(i * bucket_size) for i in range(int(max_points / bucket_size))]
         if values is not None:
             assert len(values) == len(labels)
         super().__init__(
@@ -162,11 +170,12 @@ class PointHistogram(Histogram):
             axis_labels,
             with_boxplot,
             bar_width=0.4,
+            tick_formatter=self.fmt_ticks,
         )
         self.separators: List[matplotlib.lines.Line2D] = []
 
     def recolor(self, pass_point: float):
-        fail_bar_nr = int(pass_point / self.stepsize)
+        fail_bar_nr = int(pass_point / self.bucket_size)
         for i, b in enumerate(self.bars):
             if i < fail_bar_nr:
                 b.set_color("tab:red")
@@ -184,7 +193,7 @@ class PointHistogram(Histogram):
             if s != 0.0:
                 self.separators.append(
                     self.ax.axvline(
-                        s / self.stepsize - self.stepsize / 2,
+                        s / self.bucket_size - self.bucket_size / 2,
                         alpha=0.1,
                         lw=0.5,
                         c="black",
@@ -210,16 +219,16 @@ class PointHistogram(Histogram):
 
     def relimit_x_axis(self, new_max: float):
         if new_max < self.max_points:
-            for b in self.bars[int(new_max / self.stepsize) :]:
+            for b in self.bars[int(new_max / self.bucket_size) :]:
                 b.remove()
-            del self.bars[int(new_max / self.stepsize) :]
-            del self.labels[int(new_max / self.stepsize) :]
+            del self.bars[int(new_max / self.bucket_size) :]
+            del self.labels[int(new_max / self.bucket_size) :]
         else:
             new_pos = [
-                i + 1 + self.max_points / self.stepsize
-                for i in range(int((new_max - self.max_points) / self.stepsize))
+                i + 1 + self.max_points / self.bucket_size
+                for i in range(int((new_max - self.max_points) / self.bucket_size))
             ]
-            new_labels = [str(i * self.stepsize) for i in new_pos]
+            new_labels = [str(i * self.bucket_size) for i in new_pos]
             self.bars += self.ax.bar(
                 new_pos,
                 [0] * len(new_labels),
@@ -232,6 +241,10 @@ class PointHistogram(Histogram):
         self.max_points = new_max
         self.ax.autoscale_view()
 
+    def fmt_ticks(self, x, pos) -> str:
+        """Scales the value to the bucketsize"""
+        return str(x * self.max_points / len(self.labels))
+
 
 class BigPointHistogram(PointHistogram):
     def __init__(
@@ -240,7 +253,7 @@ class BigPointHistogram(PointHistogram):
         area,
         viewport: bool = False,
         values: Optional[Collection[int]] = None,
-        stepsize: float = 0.5,
+        bucket_size: float = 0.5,
         axis_labels: bool = False,
     ):
         super().__init__(
@@ -248,8 +261,9 @@ class BigPointHistogram(PointHistogram):
             area,
             viewport,
             values,
-            stepsize,
+            bucket_size,
             title="Exam Point Distribution",
+            axis_labels=axis_labels,
             with_boxplot=True,
         )
         self.canvas.set_size_request(500, 300)
