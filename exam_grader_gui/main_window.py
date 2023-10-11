@@ -594,7 +594,7 @@ class MainWindow(Gtk.ApplicationWindow):
             # - Delimiter
             # - float comma or dot
             # - trailing separator
-            writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+            writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_NONNUMERIC)
 
             try:
                 tab = self.grading.as_table()
@@ -785,7 +785,11 @@ class MainWindow(Gtk.ApplicationWindow):
                     stud = self.grading.get_by_id(row[csv_config.id_col])
                     if csv_config.points_col is not None:
                         row[csv_config.points_col] = stud.total_points_final
-                    if csv_config.grade_col is not None:
+                    if (
+                        csv_config.grade_col is not None
+                        and row[csv_config.grade_col]
+                        == ""  # don't override existing grades
+                    ):
                         if csv_config.comma_separator:
                             row[csv_config.grade_col] = stud.grade_final.replace(
                                 ".", ","

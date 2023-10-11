@@ -404,7 +404,13 @@ class GradeTable:
         ]
         tab.append(header)
         for stud, _row in self.entries:
-            tab.append(stud.as_list())
+            stud_row = stud.as_list()
+            if len(stud_row) == len(header):
+                tab.append(stud_row)
+            else:
+                print(
+                    f"Warning: Points for Student {stud.first_name} {stud.surname} are inconsistent.Skipping for export"
+                )
         return tab
 
     def get_task_index(self, task_id: int) -> int:
