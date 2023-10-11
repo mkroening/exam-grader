@@ -280,7 +280,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.grading_table.set_filter_func(grading_row_filter_func, text, False)
 
     @Gtk.Template.Callback()
-    def on_filter_clear(self, widget, data, event):
+    def on_filter_clear(self, widget, data):
         widget.set_text("")
         self.grading_table.set_filter_func(None, None, False)
 
