@@ -5,6 +5,7 @@
         <file compressed="true"  alias="/Add_Grading_Row.ui">exam_grader_gui/ui/Add_Grading_Row.ui</file>
         <file compressed="true"  alias="/Add_Task_Row.ui">exam_grader_gui/ui/Add_Task_Row.ui</file>
         <file compressed="true"  alias="/Csv_Import_Dialog.ui">exam_grader_gui/ui/Csv_Import_Dialog.ui</file>
+        <file compressed="true"  alias="/Csv_Import_Grades.ui">exam_grader_gui/ui/Csv_Import_Grades.ui</file>
         <file compressed="true"  alias="/Csv_Patch_Dialog.ui">exam_grader_gui/ui/Csv_Patch_Dialog.ui</file>
         <file compressed="true"  alias="/Decrypt_Dialog.ui">exam_grader_gui/ui/Decrypt_Dialog.ui</file>
         <file compressed="true"  alias="/Encrypt_Dialog.ui">exam_grader_gui/ui/Encrypt_Dialog.ui</file>

@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 
 from .csv_import import CsvImportConfig, CsvImportDialog
+from .csv_results_import import CsvResultImportDialog, CsvResultImportConfig
 from .csv_patch import CsvPatchDialog
 from .exam import ExamTask, PointTable
 from .grading_table import (
@@ -691,6 +692,16 @@ class MainWindow(Gtk.ApplicationWindow):
         dialog = CsvImportDialog(self, self.csv_import_start, self.lastpath)
         dialog.present()
 
+    @Gtk.Template.Callback()
+    def on_csv_result_import_clicked(self, *args):
+        dialog = CsvResultImportDialog(
+            self,
+            [t.name for t in self.tasks],
+            self.csv_result_import_start,
+            self.lastpath,
+        )
+        dialog.present()
+
     def csv_import_start(self, csv_config: CsvImportConfig):
         if self.modified:
             warn_dialog = Gtk.AlertDialog()
@@ -705,10 +716,29 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.csv_import(csv_config)
 
+    def csv_result_import_start(self, csv_config: CsvResultImportConfig):
+        if self.modified:
+            warn_dialog = Gtk.AlertDialog()
+            warn_dialog.set_message("Warning")
+            warn_dialog.set_detail("This might overwrite existing gradings")
+            warn_dialog.set_modal(True)
+            warn_dialog.set_buttons(["Cancel", "Ok"])
+            warn_dialog.set_cancel_button(0)
+            warn_dialog.set_default_button(1)
+            # warn_dialog.get_cancel_button().get_style_context().add_class("destructive-action")
+            warn_dialog.choose(self, None, self.perform_csv_result_import, csv_config)
+        else:
+            self.csv_result_import(csv_config)
+
     def perform_csv_import(self, source_obj, async_res, data):
         result = source_obj.choose_finish(async_res)
         if result == 1:
             self.csv_import(data)
+
+    def perform_csv_result_import(self, source_obj, async_res, data):
+        result = source_obj.choose_finish(async_res)
+        if result == 1:
+            self.csv_result_import(data)
 
     def csv_import(self, csv_config: CsvImportConfig):
         self.grading.clear_rows()
@@ -754,6 +784,66 @@ class MainWindow(Gtk.ApplicationWindow):
                 error_dialog = Gtk.AlertDialog()
                 error_dialog.set_message("Error")
                 error_dialog.set_detail("Invalid Input")
+                error_dialog.set_modal(True)
+                error_dialog.show(self)
+
+        self.modified = True
+
+    def csv_result_import(self, csv_config: CsvResultImportConfig):
+        assert isinstance(csv_config.path, Path)
+
+        self.lastpath = csv_config.path
+        with csv_config.path.open("rb") as file:
+            rawdata = file.read(100000)
+        result = chardet.detect(rawdata)
+        encoding = result["encoding"]
+
+        with csv_config.path.open(newline="", encoding=encoding) as csv_f:
+            csv_f.seek(0)
+            assert csv_config.dialect is not None
+            reader = csv.DictReader(csv_f, dialect=csv_config.dialect)
+            assert isinstance(reader.fieldnames, List)
+            stud_id_col = reader.fieldnames[csv_config.id_col]
+            ap_col = None
+            if csv_config.ap_col is not None and csv_config.ap_col >= 0:
+                ap_col = reader.fieldnames[csv_config.ap_col]
+            task_mapping = {}
+            for t in self.grading.tasks:
+                try:
+                    task_mapping[t.id] = reader.fieldnames[csv_config.columns[t.name]]
+                except KeyError:
+                    pass
+
+            not_found_students = []
+            for row in reader:
+                stud_id = row[stud_id_col]
+                try:
+                    stud, grad_row = next(
+                        e for e in self.grading.entries if e[0].id == stud_id
+                    )
+                except StopIteration:
+                    not_found_students.append(stud_id)
+                    continue
+
+                for id, col in task_mapping.items():
+                    try:
+                        stud.points[id] = float(row[col])
+                        grad_row.point_entries[int(id)].set_text(row[col])
+                    except ValueError:
+                        pass
+
+                if ap_col is not None and row[ap_col] != "":
+                    stud.additional_points = float(row[ap_col])
+                    grad_row.additional_points_entry.set_text(row[ap_col])
+
+            self.grading.update_point_table(self.point_table)
+
+            if len(not_found_students) != 0:
+                error_dialog = Gtk.AlertDialog()
+                error_dialog.set_message("Warning")
+                error_dialog.set_detail(
+                    f"Couln't find the following studens: {not_found_students}"
+                )
                 error_dialog.set_modal(True)
                 error_dialog.show(self)
 

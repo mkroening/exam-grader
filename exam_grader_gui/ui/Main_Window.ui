@@ -1363,8 +1363,16 @@ Points</property>
             <child>
               <object class="GtkButton" id="csv_import_button">
                 <property name="icon-name">document-import-symbolic</property>
-                <property name="tooltip-markup" translatable="yes">Import from CSV  &lt;span style="italic"&gt;- CTRL + I&lt;/span&gt;</property>
+                <property name="tooltip-markup" translatable="yes">Import Students from CSV  &lt;span style="italic"&gt;- CTRL + I&lt;/span&gt;</property>
                 <signal name="clicked" handler="on_csv_import_clicked"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="csv_results_import_button">
+                <property name="icon-name">document-import-symbolic</property>
+                <property name="tooltip-markup" translatable="yes">Import results from CSV  &lt;span style="italic"&gt;- CTRL + I&lt;/span&gt;</property>
+                <property name="sensitive">1</property>
+                <signal name="clicked" handler="on_csv_result_import_clicked"/>
               </object>
             </child>
             <child>
