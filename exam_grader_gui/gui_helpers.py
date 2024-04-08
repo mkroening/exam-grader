@@ -117,6 +117,8 @@ def create_file_dialog(
     elif isinstance(lastpath, str):
         file_choose_dialog.set_initial_folder(Gio.File.new_for_path(lastpath))
     elif isinstance(lastpath, Path):
+        if not lastpath.is_dir():
+            lastpath = lastpath.parent
         file_choose_dialog.set_initial_folder(Gio.File.new_for_path(str(lastpath)))
 
     return file_choose_dialog
