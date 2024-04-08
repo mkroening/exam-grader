@@ -368,6 +368,7 @@ class GradeTable:
             if stud.grade_type.is_counted():
                 p = stud.points.get(task_id)
                 if p is not None:
+                    p = round_points(p, point_step)
                     pts.append(p)
                     hist[p] += 1
         return hist, pts
