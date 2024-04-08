@@ -1116,10 +1116,10 @@ class AddTaskRow(Gtk.Box):
         self.cb = cb
 
     def on_update(self, widget):
-        self.add_button.set_sensitive(get_content(widget, int) is not None)
+        self.add_button.set_sensitive(get_content(widget, float) is not None)
 
     def add_clicked(self, widget):
-        points = get_content(self.points_entry, int)
+        points = get_content(self.points_entry, float)
         if points is not None:
             self.cb(self.taskname_entry.get_text(), points)
 
