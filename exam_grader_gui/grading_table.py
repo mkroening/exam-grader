@@ -169,12 +169,18 @@ class Student:
         return d
 
     def as_list(self) -> List[str]:
+        def to_str(x: Optional[float]) -> str:
+            if x is None:
+                return ""
+            else:
+                return str(x)
+
         l = [self.id, self.first_name, self.surname, str(self.attempts)]
-        l += list(map(str, self.points.values()))
-        l += [str(self.additional_points)]
+        l += list(map(to_str, self.points.values()))
+        l += [to_str(self.additional_points)]
         l += [
-            str(self.total_points),
-            str(self.total_points_final),
+            to_str(self.total_points),
+            to_str(self.total_points_final),
             self.grade,
             self.grade_final,
         ]
