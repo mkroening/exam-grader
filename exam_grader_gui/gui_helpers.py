@@ -111,6 +111,7 @@ def create_file_dialog(
         filter.add_pattern(pattern)
         file_filters.append(filter)
     file_choose_dialog.set_filters(file_filters)
+    file_choose_dialog.set_default_filter(file_filters[0])
 
     if isinstance(lastpath, Gio.File):
         file_choose_dialog.set_initial_folder(lastpath)
