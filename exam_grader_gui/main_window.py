@@ -949,8 +949,6 @@ class MainWindow(Gtk.ApplicationWindow):
         file_choose_dialog.open(self, None, self.open_file_cb, None)
 
     def open_file_cb(self, file_dialog, async_res, data):
-        if not self.clear(False):
-            return
         try:
             file = file_dialog.open_finish(async_res)
             if file is not None:
@@ -963,6 +961,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_buttons_sensitive(True)
 
     def load_from_file(self, file: Gio.File):
+        if not self.clear(False):
+            return
         exam = {}
         is_success, data, _tag = file.load_contents()
         if not is_success:
