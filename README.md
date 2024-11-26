@@ -19,28 +19,22 @@ source .env/bin/activate
 - Ubuntu:
 
 ```bash
-sudo apt install python3-pip libgirepository1.0-dev
+sudo apt install python3-pip libgirepository1.0-dev cmake libcairo2-dev
 ```
 
 - Fedora:
 
 ```bash
-sudo dnf install cairo-gobject-devel
+sudo dnf install cairo-gobject-devel cmake cairo-devel
 ```
 
 #### Installation
 
-Regular:
 ```bash
-# in the projects root folder:
-pip install .
-```
-
-Development installation:
-```bash
+# In the projects root folder:
 # Prepare the .gresource file
 glib-compile-resources --target=ui.gresource resources.xml
-# in the projects root folder:
+# Install Exam Grader
 pip install -e .
 ```
 
