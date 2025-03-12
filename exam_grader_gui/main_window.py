@@ -342,7 +342,7 @@ class MainWindow(Gtk.ApplicationWindow):
             tasknames.append(("\n" if i % 2 == 1 else "") + t.name)
 
         self.boxplt_ax.clear()
-        if len(taskpts) > 0:
+        if sum(len(pts) for pts in taskpts) > 0:
             self.boxplt_ax.violinplot(taskpts, showmedians=True)
             self.boxplt_ax.set_xticks(
                 [y + 1 for y in range(len(taskpts))], labels=tasknames
