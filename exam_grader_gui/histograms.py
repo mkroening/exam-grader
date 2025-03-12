@@ -1,12 +1,15 @@
+from pathlib import Path
 from typing import Callable, Collection, Dict, List, Optional, Union
 
 # mypy: follow_imports = skip
 import matplotlib
+from gi.repository import Gdk, GLib, Gtk
 from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 
 from .exam import PointTable
+from .gui_helpers import create_file_dialog
 
 
 class Histogram:
@@ -27,9 +30,9 @@ class Histogram:
     ):
         self.labels = list(labels)
         self.bar_width = bar_width
-        mplfigure = Figure(figsize=(10, 2), dpi=100)
+        self.mplfigure = Figure(figsize=(10, 2), dpi=100)
 
-        self.ax = mplfigure.add_subplot(111)
+        self.ax = self.mplfigure.add_subplot(111)
         self.ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         self.bars: List[matplotlib.container.BarContainer] = []
@@ -54,12 +57,60 @@ class Histogram:
         self.tick_formatter = tick_formatter
 
         self.ax.plot()
-        self.canvas = FigureCanvas(mplfigure)
+        self.canvas = FigureCanvas(self.mplfigure)
         self.canvas.set_size_request(500, 200)
         if viewport:
             area.set_child(self.canvas)
         else:
             area.append(self.canvas)
+
+        evk = Gtk.GestureClick.new()
+        evk.set_button(3)  # Right click
+        evk.connect("pressed", self.on_histogram_clicked)
+        area.add_controller(evk)
+
+        save_button = Gtk.Button.new_with_label("Save")
+        save_button.set_has_frame(False)
+        save_button.connect("clicked", self.on_save_clicked)
+        self.context_popover = Gtk.Popover()
+        self.context_popover.set_child(save_button)
+        self.context_popover.set_parent(area)
+
+        self.context_popover.set_has_arrow(False)
+        self.context_popover.set_halign(Gtk.Align.START)
+        self.context_popover.present()
+
+    def on_histogram_clicked(self, gesture, data, x, y):
+        self.context_popover.set_pointing_to(Gdk.Rectangle(1, 1, 1, 1))
+        self.context_popover.set_offset(x, y)
+        self.context_popover.popup()
+
+    def on_save_clicked(self, widget):
+        self.context_popover.popdown()
+        file_choose_dialog = create_file_dialog(
+            None,
+            "Save Figure",
+            None,
+            [
+                ("PNG Files", "*.png"),
+                ("All Files", "*"),
+            ],
+        )
+        file_choose_dialog.set_initial_name("histogramm.png")
+        file_choose_dialog.save(None, None, self.on_file_set, None)
+
+    def on_file_set(self, file_dialog, async_res, data):
+        try:
+            file = file_dialog.save_finish(async_res)
+            if file is not None:
+                path = Path(file.get_path())
+                print(f"saving histogram to {path}")
+                self.mplfigure.savefig(path)
+            else:
+                return
+        except GLib.GError:
+            # On cancel clicked
+            return
 
     def draw(self) -> None:
         if self.with_boxplot:
