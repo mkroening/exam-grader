@@ -134,3 +134,12 @@ def clear_container(container, skip: int = 0):
         next_obj = current_obj.get_next_sibling()
         container.remove(current_obj)
         current_obj = next_obj
+
+
+def show_message_dialog(parent, message: str, detail: Optional[str] = None):
+    error_dialog = Gtk.AlertDialog()
+    error_dialog.set_message(message)
+    if detail is not None:
+        error_dialog.set_detail(detail)
+    error_dialog.set_modal(True)
+    error_dialog.show(parent)

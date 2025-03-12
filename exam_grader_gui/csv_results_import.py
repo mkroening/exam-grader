@@ -5,7 +5,7 @@ from typing import Callable, Optional, Dict, List
 
 from gi.repository import GLib, Gtk
 
-from .gui_helpers import create_file_dialog
+from .gui_helpers import create_file_dialog, show_message_dialog
 
 
 @dataclass
@@ -141,7 +141,9 @@ class CsvResultImportDialog(Gtk.Window):
 
                 self.csv_col_selection_revealer.set_reveal_child(True)
             else:
-                raise RuntimeError("Unimplemented")
+                show_message_dialog(
+                    self, "Invalid CSV", "Ensure that the CSV has a header row"
+                )
 
     @Gtk.Template.Callback()
     def on_combo_changed(self, widget):
