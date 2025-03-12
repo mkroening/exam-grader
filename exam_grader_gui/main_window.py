@@ -32,6 +32,7 @@ from .gui_helpers import (
     successful_with_open_folder_dialog,
     clear_container,
 )
+from .task_point_distribution_plt import TaskPointDistributionPlot
 from .histograms import BigPointHistogram, GradeHistogram, PointHistogram
 from .savefile import DecryptDialog, EncryptDialog, create_save_content, decrypt_exam
 
@@ -180,12 +181,7 @@ class MainWindow(Gtk.ApplicationWindow):
             bucket_size=self.min_point_step,
         )
 
-        violinplt_figure = Figure(figsize=(10, 2), dpi=100)
-        self.violinplot = violinplt_figure.add_subplot(111)
-        self.violinplot.plot()
-        self.violinplot_canvas = FigureCanvas(violinplt_figure)
-        self.violinplot_canvas.set_size_request(500, 300)
-        self.total_exam_stat.append(self.violinplot_canvas)
+        self.taskpointdistr_plot = TaskPointDistributionPlot(self.total_exam_stat)
 
         self.big_histogram = BigPointHistogram(
             self.max_points,
@@ -311,7 +307,6 @@ class MainWindow(Gtk.ApplicationWindow):
         return d
 
     def generate_task_plots(self):
-        self.violinplot.clear()
         self.taskplots.clear()
 
         clear_container(self.task_diagram_box, 0)
@@ -326,7 +321,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def update_task_plots(self):
         rev_is_active = self.processing_revealer.get_child_revealed()
         self.processing_revealer.set_reveal_child(True)
-        tasknames = []
         taskpts = []
         for tn, p in self.taskplots.items():
             th, tp = self.grading.task_histogram_and_points(self.tasks[tn].id)
@@ -338,29 +332,7 @@ class MainWindow(Gtk.ApplicationWindow):
             p["canvas"].draw()
             p["canvas"].flush_events()
 
-        for i, t in enumerate(self.tasks):
-            tasknames.append(("\n" if i % 2 == 1 else "") + t.name)
-
-        self.violinplot.clear()
-        if sum(len(pts) for pts in taskpts) > 0:
-            self.violinplot.violinplot(taskpts, showmedians=True)
-            self.violinplot.set_xticks(
-                [y + 1 for y in range(len(taskpts))], labels=tasknames
-            )
-            maxpoints = 1
-            for i, t in enumerate(self.tasks):
-                self.violinplot.hlines(
-                    t.max_points, i + 0.7, i + 1.3, linewidth=2, color="black"
-                )
-                if t.max_points > maxpoints:
-                    maxpoints = t.max_points
-            self.violinplot.set_ylim(ymin=0, ymax=maxpoints)
-            self.violinplot.set_title("Task Point Distributions")
-            self.violinplot.set_ylabel("Points")
-            self.violinplot.plot()
-        self.violinplot_canvas.draw()
-        self.violinplot_canvas.flush_events()
-
+        self.taskpointdistr_plot.draw(self.tasks, taskpts)
         self.big_histogram.draw()
 
         if not rev_is_active:
