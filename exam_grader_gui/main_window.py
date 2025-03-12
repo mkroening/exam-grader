@@ -390,6 +390,8 @@ class MainWindow(Gtk.ApplicationWindow):
         points, grades = self.grading.point_and_grades_list()
         if len(points) > 0:
             grades_numeric = [float(g) for g in grades if g in self.point_table.labels]
+            if len(grades_numeric) == 0:
+                return
             gplist = list(
                 filter(
                     lambda gp: self.point_table.has_passed(gp[0]), zip(grades, points)
