@@ -830,7 +830,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 for id, col in task_mapping.items():
                     try:
                         stud.points[id] = float(row[col])
+                        # Deactivating cb to speed up the updates
+                        tmp_cb = grad_row.row_changed_cb
+                        grad_row.row_changed_cb = None
                         grad_row.point_entries[int(id)].set_text(row[col])
+                        grad_row.row_changed_cb = tmp_cb
                     except ValueError:
                         pass
 
@@ -839,6 +843,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     grad_row.additional_points_entry.set_text(row[ap_col])
 
             self.grading.update_point_table(self.point_table)
+            self.update_histogram(was_modified=True)
 
             if len(not_found_students) != 0:
                 error_dialog = Gtk.AlertDialog()

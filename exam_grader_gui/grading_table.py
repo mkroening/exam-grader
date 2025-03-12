@@ -717,7 +717,8 @@ class GradingRow(Gtk.Box):
         new_vals = self.student.update_point(Taskpoint(task_id, p))
         self.set_points_from_update_vals(new_vals)
         self.update_grade_style()
-        self.row_changed_cb()
+        if self.row_changed_cb is not None:
+            self.row_changed_cb()
 
     def on_combo_change(self, widget):
         active = self.state_combo.get_active()
