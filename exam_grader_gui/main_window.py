@@ -180,12 +180,12 @@ class MainWindow(Gtk.ApplicationWindow):
             bucket_size=self.min_point_step,
         )
 
-        figure_boxplt = Figure(figsize=(10, 2), dpi=100)
-        self.boxplt_ax = figure_boxplt.add_subplot(111)
-        self.boxplt_ax.plot()
-        self.boxcanvas = FigureCanvas(figure_boxplt)
-        self.boxcanvas.set_size_request(500, 300)
-        self.total_exam_stat.append(self.boxcanvas)
+        violinplt_figure = Figure(figsize=(10, 2), dpi=100)
+        self.violinplot = violinplt_figure.add_subplot(111)
+        self.violinplot.plot()
+        self.violinplot_canvas = FigureCanvas(violinplt_figure)
+        self.violinplot_canvas.set_size_request(500, 300)
+        self.total_exam_stat.append(self.violinplot_canvas)
 
         self.big_histogram = BigPointHistogram(
             self.max_points,
@@ -311,7 +311,7 @@ class MainWindow(Gtk.ApplicationWindow):
         return d
 
     def generate_task_plots(self):
-        self.boxplt_ax.clear()
+        self.violinplot.clear()
         self.taskplots.clear()
 
         clear_container(self.task_diagram_box, 0)
@@ -341,25 +341,25 @@ class MainWindow(Gtk.ApplicationWindow):
         for i, t in enumerate(self.tasks):
             tasknames.append(("\n" if i % 2 == 1 else "") + t.name)
 
-        self.boxplt_ax.clear()
+        self.violinplot.clear()
         if sum(len(pts) for pts in taskpts) > 0:
-            self.boxplt_ax.violinplot(taskpts, showmedians=True)
-            self.boxplt_ax.set_xticks(
+            self.violinplot.violinplot(taskpts, showmedians=True)
+            self.violinplot.set_xticks(
                 [y + 1 for y in range(len(taskpts))], labels=tasknames
             )
             maxpoints = 1
             for i, t in enumerate(self.tasks):
-                self.boxplt_ax.hlines(
+                self.violinplot.hlines(
                     t.max_points, i + 0.7, i + 1.3, linewidth=2, color="black"
                 )
                 if t.max_points > maxpoints:
                     maxpoints = t.max_points
-            self.boxplt_ax.set_ylim(ymin=0, ymax=maxpoints)
-            self.boxplt_ax.set_title("Task Point Distributions")
-            self.boxplt_ax.set_ylabel("Points")
-            self.boxplt_ax.plot()
-        self.boxcanvas.draw()
-        self.boxcanvas.flush_events()
+            self.violinplot.set_ylim(ymin=0, ymax=maxpoints)
+            self.violinplot.set_title("Task Point Distributions")
+            self.violinplot.set_ylabel("Points")
+            self.violinplot.plot()
+        self.violinplot_canvas.draw()
+        self.violinplot_canvas.flush_events()
 
         self.big_histogram.draw()
 
