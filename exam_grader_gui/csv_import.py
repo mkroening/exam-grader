@@ -134,6 +134,9 @@ class CsvImportDialog(Gtk.Window):
                     self.comment_combo.set_active(combo_index + 1)
 
                 self.csv_col_selection_revealer.set_reveal_child(True)
+                # Very dirty hack, but with out this, the window glitches
+                self.set_visible(False)
+                self.set_visible(True)
             else:
                 show_message_dialog(
                     self, "Invalid CSV", "Ensure that the CSV has a header row"
