@@ -149,7 +149,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.grade_table_popover.set_menu_model(menu)
         self.grade_table_popover.set_parent(self.point_table_box)
         # This is somehow necessary to us the offset calculation.
-        self.grade_table_popover.set_pointing_to(Gdk.Rectangle(0, 0, 0, 0))
         self.grade_table_popover.set_has_arrow(False)
 
         self.min_point_step = 0.5
@@ -1087,6 +1086,8 @@ class MainWindow(Gtk.ApplicationWindow):
         return True
 
     def on_grade_table_button_pressed(self, gesture, data, x, y):
+        self.grade_table_popover.set_halign(Gtk.Align.START)
+        self.grade_table_popover.set_pointing_to(Gdk.Rectangle(0, 0, 0, 0))
         self.grade_table_popover.set_offset(x, y)
         self.grade_table_popover.popup()
 
