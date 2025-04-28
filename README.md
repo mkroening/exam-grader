@@ -19,13 +19,13 @@ source .env/bin/activate
 - Ubuntu:
 
 ```bash
-sudo apt install python3-pip libgirepository1.0-dev cmake libcairo2-dev
+sudo apt install python3-pip libgirepository2.0-dev cmake libcairo2-dev python3-chardet python3-matplotlib python3-gi
 ```
 
 - Fedora:
 
 ```bash
-sudo dnf install cairo-gobject-devel cmake cairo-devel
+sudo dnf install cairo-gobject-devel cmake cairo-devel python3-chardet python3-matplotlib python3-matplotlib-gtk4
 ```
 
 #### Installation
