@@ -59,7 +59,7 @@ You need to install [MSYS2](https://www.msys2.org/).
 Please execute the following instructions in the _mingw64_ shell.
 ```sh
 > $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
-> C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-cx_Freeze mingw-w64-x86_64-python3-gobject mingw-w64-x86_64-python3-cairo
+> C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed mingw-w64-x86_64-gtk4 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-cx_Freeze mingw-w64-x86_64-python3-gobject mingw-w64-x86_64-python3-cairo
 > pip install .
 
 # Create the exe

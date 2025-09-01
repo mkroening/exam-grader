@@ -65,7 +65,7 @@ type-checking:
 #     - $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
 #     - >
 #       C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed
-#       mingw-w64-x86_64-gtk3
+#       mingw-w64-x86_64-gtk4
 #       mingw-w64-x86_64-python3
 #       mingw-w64-x86_64-python3-cx_Freeze
 #       mingw-w64-x86_64-python3-gobject

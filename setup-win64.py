@@ -13,8 +13,8 @@ for asset in assets:
     include_files.append((asset, asset))
 
 # Bundle Gtk dlls
-missing_dll = ['libgtk-3-0.dll',
-               'libgdk-3-0.dll',
+missing_dll = ['libgtk-4-0.dll',
+               'libgdk-4-0.dll',
                'libcairo-gobject-2.dll',
                'libgdk_pixbuf-2.0-0.dll',
                'libjpeg-8.dll',
@@ -52,8 +52,8 @@ for (sys_dll, package_dll) in missing_rename_dll:
 
 # somemore stuff that Gtk needs
 required_gi_namespaces = [
-    "Gtk-3.0",
-    "Gdk-3.0",
+    "Gtk-4.0",
+    "Gdk-4.0",
     "cairo-1.0",
     "Pango-1.0",
     "GObject-2.0",
@@ -78,7 +78,7 @@ for ns in required_gi_namespaces:
 # The required non-code assets for gtk
 gtkLibs = [
     'etc/fonts',
-    'etc/gtk-3.0',
+    'etc/gtk-4.0',
     'lib/gdk-pixbuf-2.0',
     'lib/girepository-1.0',
     'share/fontconfig',
