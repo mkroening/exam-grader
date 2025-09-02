@@ -1,0 +1,41 @@
+name: Dist
+
+on:
+  push:
+  pull_request:
+  merge_group:
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  dist-win:
+    name: Dist (windows-2025)
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Download and install GTK
+        run: |
+          gh release download 2025.8.0 --repo wingtk/gvsbuild --pattern 'GTK4_Gvsbuild_*_x64.zip'
+          Expand-Archive -Path GTK4_Gvsbuild_*_x64.zip -DestinationPath C:\gtk
+          Add-Content $env:GITHUB_PATH "C:\gtk\bin"
+          Add-Content $env:GITHUB_ENV "LIB=C:\gtk\lib;$env:LIB"
+          Add-Content $env:GITHUB_ENV "INCLUDE=C:\gtk\include;C:\gtk\include\cairo;C:\gtk\include\glib-2.0;C:\gtk\include\gobject-introspection-1.0;C:\gtk\lib\glib-2.0\include;$env:INCLUDE"
+          pip install --force-reinstall (Resolve-Path C:\gtk\wheels\PyGObject*.whl)
+          pip install --force-reinstall (Resolve-Path C:\gtk\wheels\pycairo*.whl)
+      - run: pip install -r requirements.txt
+      - run: pip install .
+      - run: pip install 'pyinstaller==6.15.0'
+      - name: Download and install UPX
+        run: |
+          gh release download v5.0.2 --repo upx/upx --pattern 'upx-*-win64.zip'
+          Expand-Archive -Path upx-*-win64.zip -DestinationPath .
+          Move-Item -Path upx-*-win64 -Destination C:\upx
+          Add-Content $env:GITHUB_PATH C:\upx
+      - run: pyinstaller exam_grader.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/
