@@ -48,32 +48,3 @@ type-checking:
 #         coverage_format: cobertura
 #         path: coverage.xml
 #       junit: report.xml
-
-# win-build:
-#   only:
-#     refs:
-#       - master
-#   stage: packaging
-#   tags:
-#     - win10
-#   artifacts:
-#     name: win-build-files
-#     paths:
-#       - exam_grader/
-#   # This is a dirty script which modifies the windows build machine. But we don't have docker for windows and it doesn't feel it is worth the effort to improve the setup
-#   before_script:
-#     - $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
-#     - >
-#       C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed
-#       mingw-w64-x86_64-gtk4
-#       mingw-w64-x86_64-python3
-#       mingw-w64-x86_64-python3-cx_Freeze
-#       mingw-w64-x86_64-python3-gobject
-#       mingw-w64-x86_64-python3-cairo
-#       mingw64/mingw-w64-x86_64-gcc
-#       python3-pip
-
-#   script:
-#     - pip install .
-#     - python setup-win64.py build
-#     - mv build/exe.mingw* exam_grader

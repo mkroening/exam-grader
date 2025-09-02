@@ -45,32 +45,6 @@ Run it:
 exam-grader
 ```
 
-### Windows
-
-You can then download the exe file [here](https://git.rwth-aachen.de/acs/public/exam-tools/exam_scan_manager/-/jobs/artifacts/ci/download?job=win-build).
-Extract the archive and double-click the `exam-scan-manager.exe`.
-
-#### Development build on Windows
-
-**Untested**
-
-You need to install [MSYS2](https://www.msys2.org/).
-
-Please execute the following instructions in the _mingw64_ shell.
-```sh
-> $env:Path = "C:\msys64\mingw64\bin;C:\msys64\usr\bin;${env:PATH}"
-> C:\msys64\usr\bin\pacman --noconfirm -S --refresh --sysupgrade --needed mingw-w64-x86_64-gtk4 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-cx_Freeze mingw-w64-x86_64-python3-gobject mingw-w64-x86_64-python3-cairo
-> pip install .
-
-# Create the exe
-> python setup-win64.py build
-```
-You should then be able to execute the python files from that shell as well.
-
-```sh
-> exam_grader
-```
-
 ## Gallery
 
 ![Setup](resources/screenshots/Setup.png)
