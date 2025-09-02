@@ -22,12 +22,8 @@ dependencies = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-include = ["exam_grader_gui*"]  # ["*"] by default
-
-[tool.setuptools.package-data]
-"exam_scan_tools.assets" = ["*"]
-"exam_scan_tools.glade" = ["*.glade"]
+[tool.setuptools]
+packages = ["exam_grader_gui"]
 
 [project.scripts]
 exam-grader = "exam_grader_gui.start:start"
