@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-trixie
 
 RUN pip install mypy black pytest pytest-cov
 
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     gir1.2-gtk-3.0 \
     gir1.2-poppler-0.18 \
     ghostscript \
-    libgirepository1.0-dev \
+    libgirepository-2.0-dev \
     libpoppler-cpp-dev \
     libpoppler-dev \
     python3-pip \
