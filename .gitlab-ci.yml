@@ -17,7 +17,7 @@ prepare:docker:
     - docker version
     - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
   script:
-    - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} --build-arg ci_project_dir=$CI_PROJECT_DIR .
+    - docker build --pull -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} --build-arg ci_project_dir=$CI_PROJECT_DIR .
     - docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
   tags:
     - docker
