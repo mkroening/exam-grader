@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-bookworm
 
 RUN pip install mypy black pytest pytest-cov
 
