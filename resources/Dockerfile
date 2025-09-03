@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y \
 
 ARG ci_project_dir
 WORKDIR $ci_project_dir
-COPY pyproject.toml .
+COPY requirements.txt .
 
-RUN pip install .
+RUN pip install -r requirements.txt
 
 # Workaround for ghostscript-vulnerability policy
 RUN sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read | write" pattern="PDF" \/>/'  /etc/ImageMagick-*/policy.xml
